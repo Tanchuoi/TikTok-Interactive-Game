@@ -1,0 +1,254 @@
+// ─── Race Screen ─── Live race with 3D animated tracks ───
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { RaceScene3D } from '../components/3d/RaceScene3D.js';
+import { LiveFeed } from '../components/LiveFeed.js';
+import { GiftPopup } from '../components/GiftPopup.js';
+import { WinnerOverlay } from '../components/WinnerOverlay.js';
+import { useGameStore } from '../stores/useGameStore.js';
+import * as api from '../lib/api.js';
+
+export function RaceScreen() {
+  const navigate = useNavigate();
+  const status = useGameStore(s => s.status);
+  const teams = useGameStore(s => s.teams);
+  const trackLength = useGameStore(s => s.trackLength);
+  const winner = useGameStore(s => s.winner);
+  const winHistory = useGameStore(s => s.winHistory);
+  const recentGifts = useGameStore(s => s.recentGifts);
+  const [showWinner, setShowWinner] = useState(false);
+
+  // Redirect if no game
+  useEffect(() => {
+    if (status === 'idle') {
+      navigate('/');
+    }
+  }, [status, navigate]);
+
+  // Show winner overlay
+  useEffect(() => {
+    if (status === 'finished' && winner) {
+      setShowWinner(true);
+    }
+  }, [status, winner]);
+
+  // Sort teams by position (descending) for ranking
+  const sortedTeams = [...teams].sort((a, b) => b.position - a.position);
+
+  // Win counts for sidebar
+  const winCounts: Record<string, { name: string; flag: string; wins: number }> = {};
+  winHistory.forEach(w => {
+    if (!winCounts[w.teamId]) {
+      winCounts[w.teamId] = { name: w.teamName, flag: w.flag, wins: 0 };
+    }
+    winCounts[w.teamId].wins++;
+  });
+  const sortedWins = Object.entries(winCounts).sort(([, a], [, b]) => b.wins - a.wins);
+
+  // Top donors across all teams
+  const allDonors = teams
+    .flatMap(t => t.donors.map(d => ({ ...d, teamName: t.name, teamFlag: t.flag })))
+    .sort((a, b) => b.giftCount - a.giftCount)
+    .slice(0, 5);
+
+  const handleReset = async () => {
+    await api.resetGame();
+    navigate('/');
+  };
+
+  return (
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: 'var(--bg)' }}>
+      {/* ─── Header ─── */}
+      <div className="flex items-center justify-between px-4 py-2 flex-shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
+        <div className="flex items-center gap-3">
+          <h1
+            className="text-lg md:text-2xl font-bold uppercase tracking-wider"
+            style={{
+              fontFamily: 'var(--font-heading)',
+              color: 'var(--accent)',
+              textShadow: '0 0 10px rgba(0, 255, 136, 0.3)',
+            }}
+          >
+            ⚡ Nation Race
+          </h1>
+          <div
+            className="text-xs uppercase tracking-wider px-3 py-1 cyber-chamfer-sm"
+            style={{
+              fontFamily: 'var(--font-label)',
+              border: '1px solid var(--border)',
+              color: status === 'racing' ? 'var(--accent)' : 'var(--warning)',
+              background: status === 'racing' ? 'rgba(0, 255, 136, 0.05)' : 'rgba(255, 170, 0, 0.05)',
+            }}
+          >
+            {status === 'racing' ? '● LIVE' : status === 'finished' ? '● FINISHED' : '● WAITING'}
+          </div>
+          <span
+            className="text-xs"
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--muted-fg)' }}
+          >
+            Track: {trackLength} steps
+          </span>
+        </div>
+        <button
+          className="cyber-btn cyber-btn-ghost cyber-chamfer-sm text-xs"
+          onClick={handleReset}
+        >
+          ← Settings
+        </button>
+      </div>
+
+      {/* ─── Main Content ─── */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* 3D Race Scene — takes most of the space */}
+        <div className="flex-1 relative">
+          <RaceScene3D
+            teams={sortedTeams}
+            trackLength={trackLength}
+            winnerId={winner?.id}
+          />
+
+          {/* Floating progress bars overlay */}
+          <div
+            className="absolute left-3 top-3 flex flex-col gap-1 z-10"
+            style={{
+              background: 'rgba(10, 10, 30, 0.85)',
+              borderRadius: '8px',
+              padding: '8px 10px',
+              border: '1px solid var(--border)',
+              backdropFilter: 'blur(8px)',
+              maxWidth: '200px',
+            }}
+          >
+            <div className="text-[9px] uppercase tracking-widest mb-1" style={{ fontFamily: 'var(--font-label)', color: 'var(--accent-tertiary)' }}>
+              Race Progress
+            </div>
+            {sortedTeams.map((team, i) => {
+              const pct = Math.round((team.position / trackLength) * 100);
+              return (
+                <div key={team.id} className="flex items-center gap-1.5">
+                  <span className="text-[9px] w-3 text-center font-bold" style={{ color: 'var(--muted-fg)' }}>
+                    {i + 1}
+                  </span>
+                  <img
+                    src={team.flagImage}
+                    alt={team.name}
+                    className="w-4 h-3 object-cover rounded-[2px]"
+                    crossOrigin="anonymous"
+                  />
+                  <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${pct}%`,
+                        background: team.color,
+                        boxShadow: `0 0 6px ${team.color}80`,
+                      }}
+                    />
+                  </div>
+                  <span
+                    className="text-[9px] font-bold w-6 text-right"
+                    style={{ fontFamily: 'var(--font-label)', color: team.color }}
+                  >
+                    {pct}%
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ─── Right Sidebar ─── */}
+        <div
+          className="w-64 flex-shrink-0 flex flex-col gap-3 p-3 overflow-y-auto"
+          style={{ borderLeft: '1px solid var(--border)', background: 'rgba(10, 10, 30, 0.5)' }}
+        >
+          {/* Nation Wins */}
+          <div className="cyber-card-holographic cyber-chamfer-sm p-2.5">
+            <h3
+              className="text-[10px] uppercase tracking-widest mb-2"
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--gold)' }}
+            >
+              🏆 Nation Wins
+            </h3>
+            {sortedWins.length === 0 ? (
+              <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>First race!</p>
+            ) : (
+              <div className="flex flex-col gap-1">
+                {sortedWins.slice(0, 6).map(([teamId, data], i) => (
+                  <div key={teamId} className="flex items-center gap-1.5 text-[10px]">
+                    <span className="w-3 text-center">
+                      {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`}
+                    </span>
+                    <span>{data.flag}</span>
+                    <span className="flex-1 uppercase font-bold" style={{ fontFamily: 'var(--font-heading)' }}>
+                      {data.name}
+                    </span>
+                    <span className="font-bold" style={{ color: 'var(--accent)', fontFamily: 'var(--font-heading)' }}>
+                      {data.wins}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Top Donors */}
+          <div className="cyber-card cyber-chamfer-sm p-2.5">
+            <h3
+              className="text-[10px] uppercase tracking-widest mb-2"
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--accent-secondary)' }}
+            >
+              💎 Top Donors
+            </h3>
+            {allDonors.length === 0 ? (
+              <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>No donors yet<span className="blink-cursor" /></p>
+            ) : (
+              <div className="flex flex-col gap-1">
+                {allDonors.map((donor, i) => (
+                  <div
+                    key={donor.userId}
+                    className="flex items-center gap-1.5 text-[10px]"
+                    style={{
+                      borderLeft: i < 3 ? `2px solid var(--accent-secondary)` : '2px solid transparent',
+                      paddingLeft: '4px',
+                    }}
+                  >
+                    <span className="font-bold w-3 text-center" style={{ color: 'var(--muted-fg)' }}>
+                      {i + 1}
+                    </span>
+                    <span>{donor.teamFlag}</span>
+                    <span className="flex-1 truncate" style={{ color: 'var(--fg)' }}>
+                      {donor.userName}
+                    </span>
+                    <span
+                      className="font-bold"
+                      style={{ color: 'var(--accent-secondary)', fontFamily: 'var(--font-heading)' }}
+                    >
+                      {donor.giftCount}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Live Feed */}
+          <div className="flex-1 min-h-0">
+            <LiveFeed events={recentGifts} />
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Toast Notifications ─── */}
+      <GiftPopup />
+
+      {/* ─── Winner Overlay ─── */}
+      {showWinner && winner && (
+        <WinnerOverlay
+          winner={winner}
+          onClose={() => setShowWinner(false)}
+        />
+      )}
+    </div>
+  );
+}
