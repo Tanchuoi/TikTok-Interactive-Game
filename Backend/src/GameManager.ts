@@ -10,6 +10,7 @@ export interface TeamConfig {
   color: string;
   giftId: number;
   giftName: string;
+  giftImageUrl?: string;
 }
 
 export interface Donor {
@@ -27,6 +28,7 @@ export interface Team extends TeamConfig {
 export interface GiftData {
   giftId: number;
   giftName: string;
+  giftPictureUrl?: string;
   repeatCount: number;
   userId: string;
   userName: string;
@@ -147,6 +149,7 @@ class GameManager extends EventEmitter {
         userName: giftData.userName,
         userAvatar: giftData.userAvatar,
         steps,
+        giftImageUrl: giftData.giftPictureUrl,
       },
     });
 

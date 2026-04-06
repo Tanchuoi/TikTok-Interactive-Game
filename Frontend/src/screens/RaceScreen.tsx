@@ -6,6 +6,7 @@ import { LiveFeed } from '../components/LiveFeed.js';
 import { GiftPopup } from '../components/GiftPopup.js';
 import { WinnerOverlay } from '../components/WinnerOverlay.js';
 import { useGameStore } from '../stores/useGameStore.js';
+import { useSocketStore } from '../stores/useSocketStore.js';
 import * as api from '../lib/api.js';
 
 export function RaceScreen() {
@@ -17,6 +18,7 @@ export function RaceScreen() {
   const winHistory = useGameStore(s => s.winHistory);
   const recentGifts = useGameStore(s => s.recentGifts);
   const [showWinner, setShowWinner] = useState(false);
+  const viewerCount = useSocketStore(s => s.viewerCount);
 
   // Redirect if no game
   useEffect(() => {
@@ -88,6 +90,14 @@ export function RaceScreen() {
           >
             Track: {trackLength} steps
           </span>
+          <div className="h-4 w-[1px] bg-[var(--border)] mx-1" />
+          <span
+            className="text-xs flex items-center gap-1.5"
+            style={{ fontFamily: 'var(--font-label)', color: 'var(--accent)' }}
+          >
+            <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" />
+            {viewerCount.toLocaleString()} Viewers
+          </span>
         </div>
         <button
           className="cyber-btn cyber-btn-ghost cyber-chamfer-sm text-xs"
@@ -109,33 +119,38 @@ export function RaceScreen() {
 
           {/* Floating progress bars overlay */}
           <div
-            className="absolute left-3 top-3 flex flex-col gap-1 z-10"
+            className="absolute left-3 top-3 flex flex-col gap-1.5 z-10"
             style={{
               background: 'rgba(10, 10, 30, 0.85)',
               borderRadius: '8px',
-              padding: '8px 10px',
+              padding: '12px 14px',
               border: '1px solid var(--border)',
               backdropFilter: 'blur(8px)',
-              maxWidth: '200px',
+              maxWidth: '240px',
             }}
           >
-            <div className="text-[9px] uppercase tracking-widest mb-1" style={{ fontFamily: 'var(--font-label)', color: 'var(--accent-tertiary)' }}>
+            <div className="text-[10px] uppercase tracking-widest mb-1.5" style={{ fontFamily: 'var(--font-label)', color: 'var(--accent-tertiary)' }}>
               Race Progress
             </div>
             {sortedTeams.map((team, i) => {
               const pct = Math.round((team.position / trackLength) * 100);
               return (
-                <div key={team.id} className="flex items-center gap-1.5">
-                  <span className="text-[9px] w-3 text-center font-bold" style={{ color: 'var(--muted-fg)' }}>
+                <div key={team.id} className="flex items-center gap-2">
+                  <span className="text-[10px] w-4 text-center font-bold" style={{ color: 'var(--muted-fg)' }}>
                     {i + 1}
                   </span>
                   <img
                     src={team.flagImage}
                     alt={team.name}
-                    className="w-4 h-3 object-cover rounded-[2px]"
+                    className="w-5 h-4 object-cover rounded-[2px]"
                     crossOrigin="anonymous"
                   />
-                  <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+                  {team.giftImageUrl ? (
+                    <img src={team.giftImageUrl} alt={team.giftName} className="w-5 h-5 object-contain shrink-0" crossOrigin="anonymous" title={team.giftName} />
+                  ) : (
+                    <span className="text-[12px] shrink-0" title={team.giftName}>🎁</span>
+                  )}
+                  <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--border)', width: '80px' }}>
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
@@ -146,7 +161,7 @@ export function RaceScreen() {
                     />
                   </div>
                   <span
-                    className="text-[9px] font-bold w-6 text-right"
+                    className="text-[10px] font-bold w-7 text-right"
                     style={{ fontFamily: 'var(--font-label)', color: team.color }}
                   >
                     {pct}%

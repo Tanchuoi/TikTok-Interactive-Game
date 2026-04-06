@@ -7,10 +7,12 @@ interface SocketStore {
   isConnected: boolean;
   tiktokConnected: boolean;
   tiktokUsername: string;
+  viewerCount: number;
 
   connect: () => void;
   disconnect: () => void;
   setTikTokStatus: (connected: boolean, username: string) => void;
+  setViewerCount: (count: number) => void;
 }
 
 export const useSocketStore = create<SocketStore>((set, get) => ({
@@ -18,6 +20,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   isConnected: false,
   tiktokConnected: false,
   tiktokUsername: '',
+  viewerCount: 0,
 
   connect: () => {
     const existing = get().socket;
@@ -56,6 +59,10 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   },
 
   setTikTokStatus: (connected, username) => {
-    set({ tiktokConnected: connected, tiktokUsername: username });
+    set({ tiktokConnected: connected, tiktokUsername: username, viewerCount: connected ? get().viewerCount : 0 });
+  },
+
+  setViewerCount: (count) => {
+    set({ viewerCount: count });
   },
 }));

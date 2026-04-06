@@ -84,10 +84,15 @@ class TikTokService extends EventEmitter {
         const giftType = data.giftDetails?.giftType ?? data.giftType;
         if (giftType === 1 && !data.repeatEnd) return;
 
-        const giftId = data.giftId ?? data.giftDetails?.giftId;
-        const giftName = data.giftDetails?.giftName || data.giftName || `Gift_${giftId}`;
-        const diamondCount = data.giftDetails?.diamondCount ?? data.diamondCount ?? 0;
-        const giftPictureUrl = data.giftDetails?.giftPictureUrl || '';
+        const giftId = data.giftId ?? data.giftDetails?.giftId ?? data.gift?.gift_id;
+        const giftName = data.giftDetails?.giftName || data.giftName || data.gift?.name || `Gift_${giftId}`;
+        const diamondCount = data.giftDetails?.diamondCount ?? data.diamondCount ?? data.gift?.diamond_count ?? 0;
+        
+        let giftPictureUrl = data.giftDetails?.giftPictureUrl || data.gift?.icon?.urlList?.[0] || data.gift?.image?.urlList?.[0] || data.gift?.image?.url_list?.[0] || data.giftPictureUrl || '';
+        if (!giftPictureUrl) {
+          const knownGift = this.availableGifts.find(g => g.id === giftId || g.id === data.gift?.gift_id);
+          if (knownGift) giftPictureUrl = knownGift.imageUrl;
+        }
 
         // User info from TS rewrite uses data.user.*
         const user = data.user || {};
@@ -151,6 +156,14 @@ class TikTokService extends EventEmitter {
           userAvatar: user.profilePictureUrl || '',
           memberCount: data.memberCount,
         });
+      });
+
+      // ─── ROOM USER event (viewers) ───
+      const roomUserEventName = WebcastEvent?.ROOM_USER || 'roomUser';
+      this.connection.on(roomUserEventName, (data: any) => {
+        if (data.viewerCount !== undefined) {
+          this.emit('viewers', { viewerCount: data.viewerCount });
+        }
       });
 
       // ─── CHAT event ───

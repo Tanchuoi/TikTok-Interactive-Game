@@ -32,8 +32,12 @@ export function GiftPopup() {
           }}
         >
           <div className="flex items-center gap-2">
-            <span className="text-sm">{TYPE_ICONS[toast.type]}</span>
-            <div className="flex-1 min-w-0">
+            {toast.userAvatar ? (
+              <img src={toast.userAvatar} alt="" className="w-6 h-6 rounded-full object-cover border border-[var(--border)] shrink-0" crossOrigin="anonymous" />
+            ) : (
+              <span className="text-sm shrink-0">{TYPE_ICONS[toast.type]}</span>
+            )}
+            <div className="flex-1 min-w-0 flex items-center flex-wrap gap-x-1">
               <span
                 className="font-bold text-xs"
                 style={{ color: TYPE_COLORS[toast.type] }}
@@ -41,11 +45,14 @@ export function GiftPopup() {
                 {toast.userName}
               </span>
               <span
-                className="text-xs ml-1"
+                className="text-xs"
                 style={{ color: 'var(--muted-fg)' }}
               >
                 {toast.message}
               </span>
+              {toast.giftImageUrl && (
+                <img src={toast.giftImageUrl} alt="gift" className="w-5 h-5 object-contain" crossOrigin="anonymous" />
+              )}
             </div>
             {toast.teamFlag && (
               <span className="text-sm shrink-0">{toast.teamFlag}</span>

@@ -8,6 +8,7 @@ export interface TeamConfig {
   color: string;
   giftId: number;
   giftName: string;
+  giftImageUrl?: string;
 }
 
 export interface Donor {
@@ -27,6 +28,7 @@ export interface GiftMoveData {
   userName: string;
   userAvatar: string;
   steps: number;
+  giftImageUrl?: string;
 }
 
 export interface MoveEvent {
@@ -79,6 +81,7 @@ export interface ToastEvent {
   message: string;
   teamFlag?: string;
   timestamp: number;
+  giftImageUrl?: string;
 }
 
 export interface Country {

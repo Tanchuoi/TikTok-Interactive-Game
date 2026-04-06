@@ -44,6 +44,7 @@ export function useSocketListener() {
         message: `gifted ${event.giftData.giftName} ${event.giftData.steps > 1 ? `x${event.giftData.steps}` : ''} → ${event.teamFlag} ${event.teamName}`,
         teamFlag: event.teamFlag,
         timestamp: Date.now(),
+        giftImageUrl: event.giftData.giftImageUrl,
       };
       addToast(toast);
     };
@@ -92,6 +93,10 @@ export function useSocketListener() {
       });
     };
 
+    const handleViewers = (data: { viewerCount: number }) => {
+      useSocketStore.getState().setViewerCount(data.viewerCount);
+    };
+
     // ─── Attach listeners ───
     socket.on('init', handleInit);
     socket.on('game:stateChange', handleStateChange);
@@ -101,6 +106,7 @@ export function useSocketListener() {
     socket.on('tiktok:follow', handleFollow);
     socket.on('tiktok:share', handleShare);
     socket.on('tiktok:like', handleLike);
+    socket.on('tiktok:viewers', handleViewers);
 
     return () => {
       socket.off('init', handleInit);
@@ -111,6 +117,7 @@ export function useSocketListener() {
       socket.off('tiktok:follow', handleFollow);
       socket.off('tiktok:share', handleShare);
       socket.off('tiktok:like', handleLike);
+      socket.off('tiktok:viewers', handleViewers);
     };
   }, [socket, setFullState, moveTeam, setWinner, addToast, setTikTokStatus]);
 }

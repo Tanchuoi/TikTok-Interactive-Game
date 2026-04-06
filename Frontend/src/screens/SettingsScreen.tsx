@@ -9,9 +9,45 @@ import { TIKTOK_GIFTS } from '../lib/gifts.js';
 import * as api from '../lib/api.js';
 import type { TeamConfig } from '../types/index.js';
 
+const CustomSelect = ({ value, onChange, options }: any) => {
+  const [open, setOpen] = useState(false);
+  const selected = options.find((o: any) => o.value === value);
+
+  return (
+    <div className="relative flex-1 min-w-0" onMouseLeave={() => setOpen(false)}>
+      <div 
+        className="cyber-select cyber-chamfer-sm text-xs flex items-center justify-between cursor-pointer"
+        style={{ padding: '0.4rem 0.6rem' }}
+        onClick={() => setOpen(!open)}
+      >
+        <div className="flex items-center gap-1.5 truncate">
+           {selected?.imageUrl ? <img src={selected.imageUrl} className="w-4 h-4 object-contain shrink-0" crossOrigin="anonymous" /> : null}
+           <span className="truncate">{selected?.emoji ? `${selected.emoji} ` : ''}{selected?.label}</span>
+        </div>
+        <span className="text-[10px] shrink-0 ml-1">▼</span>
+      </div>
+      {open && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--card)] border border-[var(--border)] z-50 max-h-48 overflow-y-auto cyber-chamfer-sm shadow-lg">
+          {options.map((opt: any) => (
+            <div 
+              key={opt.value} 
+              className="px-2 py-1.5 text-[11px] flex items-center gap-1.5 hover:bg-[var(--accent)] hover:text-black cursor-pointer transition-colors"
+              onClick={() => { onChange(opt.value); setOpen(false); }}
+            >
+              {opt.imageUrl ? <img src={opt.imageUrl} className="w-4 h-4 object-contain shrink-0" crossOrigin="anonymous" /> : <span className="w-4 text-center">{opt.emoji}</span>}
+              <span className="truncate">{opt.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export function SettingsScreen() {
   const navigate = useNavigate();
   const tiktokConnected = useSocketStore(s => s.tiktokConnected);
+  const setTikTokStatus = useSocketStore(s => s.setTikTokStatus);
   const winHistory = useGameStore(s => s.winHistory);
 
   // ─── Local State ───
@@ -19,10 +55,10 @@ export function SettingsScreen() {
   const [connecting, setConnecting] = useState(false);
   const [connectionError, setConnectionError] = useState('');
   const [selectedCountries, setSelectedCountries] = useState<string[]>(DEFAULT_SELECTED_IDS);
+  const [availableGifts, setAvailableGifts] = useState<any[]>(TIKTOK_GIFTS);
   const [giftMapping, setGiftMapping] = useState<Record<string, number>>({});
   const [trackLength, setTrackLength] = useState(50);
   const [isStarting, setIsStarting] = useState(false);
-
   // ─── Initialize default gift mapping ───
   useEffect(() => {
     const mapping: Record<string, number> = {};
@@ -34,6 +70,36 @@ export function SettingsScreen() {
     setGiftMapping(mapping);
   }, []);
 
+  // ─── Fetch gifts when TikTok connects ───
+  useEffect(() => {
+    if (tiktokConnected) {
+      api.fetchTikTokGifts().then(res => {
+        if (res.success && res.gifts && res.gifts.length > 0) {
+          const formattedGifts = res.gifts.map(g => ({
+            name: g.name,
+            giftId: g.id,
+            price: g.diamondCount,
+            imageUrl: g.imageUrl,
+          }));
+          setAvailableGifts(formattedGifts);
+
+          // Update current mapping if it uses invalid IDs
+          setGiftMapping(prevMap => {
+            const newMap = { ...prevMap };
+            Object.keys(newMap).forEach((countryId, i) => {
+              if (!formattedGifts.find(g => g.giftId === newMap[countryId])) {
+                newMap[countryId] = formattedGifts[i % formattedGifts.length].giftId;
+              }
+            });
+            return newMap;
+          });
+        }
+      }).catch(err => console.error("Could not fetch gifts:", err));
+    } else {
+      setAvailableGifts(TIKTOK_GIFTS);
+    }
+  }, [tiktokConnected]);
+
   // ─── Handlers ───
   const handleConnect = async () => {
     if (!username.trim()) return;
@@ -43,6 +109,8 @@ export function SettingsScreen() {
       const result = await api.connectTikTok(username.trim());
       if (!result.success) {
         setConnectionError(result.error || 'Connection failed');
+      } else {
+        setTikTokStatus(true, username.trim());
       }
     } catch {
       setConnectionError('Network error');
@@ -52,31 +120,32 @@ export function SettingsScreen() {
 
   const handleDisconnect = async () => {
     await api.disconnectTikTok();
+    setTikTokStatus(false, '');
   };
 
-  const toggleCountry = useCallback((id: string) => {
-    setSelectedCountries(prev => {
-      if (prev.includes(id)) {
-        if (prev.length <= 2) return prev; // minimum 2
-        const next = prev.filter(c => c !== id);
-        // Remove from gift mapping
-        setGiftMapping(m => {
-          const copy = { ...m };
-          delete copy[id];
-          return copy;
-        });
-        return next;
-      }
-      if (prev.length >= 12) return prev; // maximum 12
-      // Auto-assign a gift
-      const usedGifts = Object.values(giftMapping);
-      const available = TIKTOK_GIFTS.find(g => !usedGifts.includes(g.giftId));
-      if (available) {
-        setGiftMapping(m => ({ ...m, [id]: available.giftId }));
-      }
-      return [...prev, id];
-    });
-  }, [giftMapping]);
+    const toggleCountry = useCallback((id: string) => {
+      setSelectedCountries(prev => {
+        if (prev.includes(id)) {
+          if (prev.length <= 2) return prev; // minimum 2
+          const next = prev.filter(c => c !== id);
+          // Remove from gift mapping
+          setGiftMapping(m => {
+            const copy = { ...m };
+            delete copy[id];
+            return copy;
+          });
+          return next;
+        }
+        if (prev.length >= 12) return prev; // maximum 12
+        // Auto-assign a gift
+        const usedGifts = Object.values(giftMapping);
+        const available = availableGifts.find(g => !usedGifts.includes(g.giftId));
+        if (available) {
+          setGiftMapping(m => ({ ...m, [id]: available.giftId }));
+        }
+        return [...prev, id];
+      });
+    }, [giftMapping, availableGifts]);
 
   const handleGiftChange = useCallback((countryId: string, giftId: number) => {
     setGiftMapping(prev => ({ ...prev, [countryId]: giftId }));
@@ -99,8 +168,8 @@ export function SettingsScreen() {
       // Build team configs
       const teams: TeamConfig[] = selectedCountries.map(id => {
         const country = COUNTRIES.find(c => c.id === id)!;
-        const giftId = giftMapping[id] || TIKTOK_GIFTS[0].giftId;
-        const gift = TIKTOK_GIFTS.find(g => g.giftId === giftId);
+        const giftId = giftMapping[id] || availableGifts[0]?.giftId || 0;
+        const gift = availableGifts.find(g => g.giftId === giftId);
         return {
           id: country.id,
           name: country.name,
@@ -109,6 +178,7 @@ export function SettingsScreen() {
           color: country.color,
           giftId,
           giftName: gift?.name || 'Gift',
+          giftImageUrl: gift?.imageUrl,
         };
       });
 
@@ -160,16 +230,16 @@ export function SettingsScreen() {
     .sort(([, a], [, b]) => b.wins - a.wins);
 
   return (
-    <div className="min-h-screen p-4 md:p-8 max-w-5xl mx-auto">
+    <div className="min-h-screen py-12 px-4 md:px-8 max-w-5xl mx-auto flex flex-col justify-center">
       {/* ─── Title ─── */}
-      <div className="text-center mb-8">
-        <GlitchText text="TIKTOK NATION RACE" as="h1" className="text-4xl md:text-6xl lg:text-7xl mb-2">
+      <div className="text-center mb-10">
+        <GlitchText text="TIKTOK NATION RACE" as="h1" className="text-4xl md:text-6xl lg:text-7xl mb-4 leading-tight">
           <span style={{ color: 'var(--accent)' }}>TIKTOK</span>{' '}
           <span style={{ color: 'var(--accent-secondary)' }}>NATION</span>{' '}
           <span style={{ color: 'var(--accent-tertiary)' }}>RACE</span>
         </GlitchText>
         <p
-          className="text-sm uppercase tracking-widest mt-3"
+          className="text-sm md:text-base uppercase tracking-widest mt-4"
           style={{ fontFamily: 'var(--font-label)', color: 'var(--muted-fg)' }}
         >
           {'>'} Real-time interactive game for TikTok Live
@@ -335,17 +405,16 @@ export function SettingsScreen() {
                         {country.name}
                       </span>
                       <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>←</span>
-                      <select
-                        className="cyber-select cyber-chamfer-sm text-xs"
+                      <CustomSelect
                         value={giftMapping[id] || ''}
-                        onChange={e => handleGiftChange(id, Number(e.target.value))}
-                      >
-                        {TIKTOK_GIFTS.map(gift => (
-                          <option key={gift.giftId} value={gift.giftId}>
-                            {gift.emoji} {gift.name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val: number) => handleGiftChange(id, val)}
+                        options={availableGifts.map(gift => ({
+                          value: gift.giftId,
+                          label: `${gift.name} ${gift.price !== undefined ? `(${gift.price} Dia)` : ''}`,
+                          emoji: gift.emoji,
+                          imageUrl: gift.imageUrl
+                        }))}
+                      />
                     </div>
                   );
                 })}

@@ -73,6 +73,14 @@ tiktokService.on('like', (data) => {
   io.emit('tiktok:like', data);
 });
 
+tiktokService.on('member', (data) => {
+  io.emit('tiktok:member', data);
+});
+
+tiktokService.on('viewers', (data) => {
+  io.emit('tiktok:viewers', data);
+});
+
 tiktokService.on('disconnected', () => {
   io.emit('tiktok:status', { connected: false, username: '' });
 });

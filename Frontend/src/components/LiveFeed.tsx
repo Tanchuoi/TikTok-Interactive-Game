@@ -55,14 +55,20 @@ export function LiveFeed({ events }: LiveFeedProps) {
               borderLeft: `2px solid ${event.teamColor}`,
             }}
           >
-            <span className="shrink-0">{event.teamFlag}</span>
-            <span className="truncate" style={{ color: 'var(--muted-fg)' }}>
-              <span style={{ color: 'var(--fg)' }}>{event.giftData.userName}</span>
-              {' → '}
-              <span style={{ color: event.teamColor }}>{event.teamName}</span>
-              {event.giftData.steps > 1 && (
-                <span style={{ color: 'var(--accent)' }}> x{event.giftData.steps}</span>
+            {event.giftData.userAvatar ? (
+              <img src={event.giftData.userAvatar} alt="" className="w-5 h-5 rounded-full object-cover shrink-0 border border-[var(--border)]" crossOrigin="anonymous" />
+            ) : (
+              <span className="shrink-0">{event.teamFlag}</span>
+            )}
+            <span className="truncate flex-1 flex items-center flex-wrap gap-x-1" style={{ color: 'var(--muted-fg)' }}>
+              <span style={{ color: 'var(--fg)', fontWeight: 'bold' }}>{event.giftData.userName}</span>
+              {event.giftData.giftImageUrl && (
+                <img src={event.giftData.giftImageUrl} alt={event.giftData.giftName} className="w-4 h-4 object-contain" crossOrigin="anonymous" />
               )}
+              {event.giftData.steps > 1 && (
+                <span style={{ color: 'var(--accent)', fontWeight: 'bold', marginRight: '2px' }}>x{event.giftData.steps}</span>
+              )}
+              <span className="text-[10px]">→ {event.teamFlag} <span style={{ color: event.teamColor }}>{event.teamName}</span></span>
             </span>
           </div>
         ))}

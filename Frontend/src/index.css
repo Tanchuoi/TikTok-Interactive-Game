@@ -519,6 +519,11 @@ a:hover {
   to { transform: translateX(0); opacity: 1; }
 }
 
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
 @keyframes slide-in-up {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
@@ -606,11 +611,11 @@ a:hover {
    ═══════════════════════════════════════════ */
 .toast-container {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
+  bottom: 1rem;
+  left: 1rem;
   z-index: 9000;
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   gap: 0.5rem;
   max-width: 320px;
 }
@@ -620,7 +625,7 @@ a:hover {
   border: 1px solid var(--border);
   padding: 0.6rem 1rem;
   font-size: 0.8rem;
-  animation: slide-in-right 0.3s ease-out;
+  animation: slide-in-left 0.3s ease-out;
   backdrop-filter: blur(8px);
 }
 
