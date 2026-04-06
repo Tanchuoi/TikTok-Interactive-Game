@@ -1,5 +1,6 @@
 // ─── Settings Screen ─── Game configuration + TikTok connection ───
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { GlitchText } from '../components/GlitchText.js';
 import { useSocketStore } from '../stores/useSocketStore.js';
@@ -11,34 +12,126 @@ import type { TeamConfig } from '../types/index.js';
 
 const CustomSelect = ({ value, onChange, options }: any) => {
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState({ left: 0, top: 0, width: 0, maxHeight: 320 });
   const selected = options.find((o: any) => o.value === value);
 
+  useEffect(() => {
+    function updatePosition() {
+      if (open && wrapperRef.current) {
+        const rect = wrapperRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        
+        let maxHeight = 320;
+        let top = rect.bottom + 4;
+        
+        if (spaceBelow < 250 && spaceAbove > spaceBelow) {
+          maxHeight = Math.min(320, spaceAbove - 20);
+          top = rect.top - maxHeight - 4;
+        } else {
+          maxHeight = Math.min(320, spaceBelow - 20);
+        }
+
+        let idealWidth = Math.max(rect.width, 320);
+        let finalLeft = rect.left;
+        
+        if (finalLeft + idealWidth > window.innerWidth - 16) {
+          finalLeft = Math.max(16, window.innerWidth - idealWidth - 16);
+        }
+
+        setCoords({
+          left: finalLeft,
+          top,
+          width: idealWidth,
+          maxHeight: maxHeight > 100 ? maxHeight : 100
+        });
+      }
+    }
+
+    if (open) {
+      updatePosition();
+      window.addEventListener('scroll', updatePosition, true);
+      window.addEventListener('resize', updatePosition);
+    }
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (open) {
+        const target = event.target as Node;
+        if (wrapperRef.current && !wrapperRef.current.contains(target) &&
+            dropdownRef.current && !dropdownRef.current.contains(target)) {
+          setOpen(false);
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  const filteredOptions = options.filter((o: any) => 
+    o.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="relative flex-1 min-w-0" onMouseLeave={() => setOpen(false)}>
+    <div className="relative flex-1 min-w-0" ref={wrapperRef}>
       <div 
-        className="cyber-select cyber-chamfer-sm text-xs flex items-center justify-between cursor-pointer"
-        style={{ padding: '0.4rem 0.6rem' }}
-        onClick={() => setOpen(!open)}
+        className="cyber-select cyber-chamfer-sm text-sm flex items-center justify-between cursor-pointer hover:bg-[rgba(0,255,136,0.1)] transition-colors"
+        style={{ padding: '0.6rem 0.8rem' }}
+        onClick={() => { setOpen(!open); setSearchTerm(''); }}
       >
-        <div className="flex items-center gap-1.5 truncate">
-           {selected?.imageUrl ? <img src={selected.imageUrl} className="w-4 h-4 object-contain shrink-0" crossOrigin="anonymous" /> : null}
-           <span className="truncate">{selected?.emoji ? `${selected.emoji} ` : ''}{selected?.label}</span>
+        <div className="flex items-center gap-2.5 truncate">
+           {selected?.imageUrl ? <img src={selected.imageUrl} className="w-6 h-6 object-contain shrink-0" crossOrigin="anonymous" /> : null}
+           <span className="truncate flex-1 text-left text-base">{selected?.emoji ? `${selected.emoji} ` : ''}{selected?.label}</span>
         </div>
-        <span className="text-[10px] shrink-0 ml-1">▼</span>
+        <span className="text-[12px] shrink-0 ml-2">▼</span>
       </div>
-      {open && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--card)] border border-[var(--border)] z-50 max-h-48 overflow-y-auto cyber-chamfer-sm shadow-lg">
-          {options.map((opt: any) => (
-            <div 
-              key={opt.value} 
-              className="px-2 py-1.5 text-[11px] flex items-center gap-1.5 hover:bg-[var(--accent)] hover:text-black cursor-pointer transition-colors"
-              onClick={() => { onChange(opt.value); setOpen(false); }}
-            >
-              {opt.imageUrl ? <img src={opt.imageUrl} className="w-4 h-4 object-contain shrink-0" crossOrigin="anonymous" /> : <span className="w-4 text-center">{opt.emoji}</span>}
-              <span className="truncate">{opt.label}</span>
-            </div>
-          ))}
-        </div>
+
+      {open && createPortal(
+        <div 
+          ref={dropdownRef}
+          className="fixed bg-[var(--card)] border border-[var(--border)] z-[9999] flex flex-col shadow-[0_10px_30px_rgba(0,0,0,0.9)] cyber-chamfer-sm"
+          style={{
+            left: coords.left,
+            top: coords.top,
+            width: coords.width,
+            maxHeight: `${coords.maxHeight}px`
+          }}
+        >
+          <div className="p-2 border-b border-[var(--border)] bg-[var(--bg)] shrink-0">
+            <input 
+              type="text" 
+              className="w-full bg-[var(--card)] border border-[var(--border)] rounded-[2px] px-3 py-2 text-sm outline-none focus:border-[var(--accent)] text-white"
+              placeholder="Search gift..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              autoFocus
+            />
+          </div>
+          <div className="overflow-y-auto flex-1">
+            {filteredOptions.length > 0 ? filteredOptions.map((opt: any, index: number) => (
+              <div 
+                key={`${opt.value}-${index}`}
+                className="px-3 py-2.5 text-base flex items-center gap-3 hover:bg-[var(--accent)] hover:text-black cursor-pointer transition-colors"
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+              >
+                {opt.imageUrl ? <img src={opt.imageUrl} className="w-7 h-7 object-contain shrink-0" crossOrigin="anonymous" /> : <span className="w-7 text-center">{opt.emoji}</span>}
+                <span className="flex-1 text-sm tracking-wide">{opt.label}</span>
+              </div>
+            )) : (
+              <div className="p-4 text-center text-sm text-[var(--muted-fg)]">No gifts found</div>
+            )}
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -75,12 +168,19 @@ export function SettingsScreen() {
     if (tiktokConnected) {
       api.fetchTikTokGifts().then(res => {
         if (res.success && res.gifts && res.gifts.length > 0) {
-          const formattedGifts = res.gifts.map(g => ({
-            name: g.name,
-            giftId: g.id,
-            price: g.diamondCount,
-            imageUrl: g.imageUrl,
-          }));
+          const formattedGifts: any[] = [];
+          const seen = new Set();
+          res.gifts.forEach((g: any) => {
+            if (!seen.has(g.id)) {
+              seen.add(g.id);
+              formattedGifts.push({
+                name: g.name,
+                giftId: g.id,
+                price: g.diamondCount,
+                imageUrl: g.imageUrl,
+              });
+            }
+          });
           setAvailableGifts(formattedGifts);
 
           // Update current mapping if it uses invalid IDs
@@ -230,8 +330,9 @@ export function SettingsScreen() {
     .sort(([, a], [, b]) => b.wins - a.wins);
 
   return (
-    <div className="min-h-screen py-12 px-4 md:px-8 max-w-5xl mx-auto flex flex-col justify-center">
-      {/* ─── Title ─── */}
+    <div className="min-h-screen w-full flex items-center justify-center p-4 py-12">
+      <div className="w-full max-w-7xl">
+        {/* ─── Title ─── */}
       <div className="text-center mb-10">
         <GlitchText text="TIKTOK NATION RACE" as="h1" className="text-4xl md:text-6xl lg:text-7xl mb-4 leading-tight">
           <span style={{ color: 'var(--accent)' }}>TIKTOK</span>{' '}
@@ -261,7 +362,7 @@ export function SettingsScreen() {
             </h2>
 
             <div className="flex gap-3 mb-3">
-              <div className="cyber-input-wrapper flex-1">
+              <div className="cyber-input-wrapper flex-1">  
                 <input
                   className="cyber-input cyber-chamfer-sm"
                   type="text"
@@ -307,7 +408,7 @@ export function SettingsScreen() {
           </div>
 
           {/* RACE CONFIGURATION */}
-          <div className="cyber-card cyber-chamfer p-4">
+          <div className="cyber-card cyber-chamfer p-6 sm:p-8">
             <h2
               className="text-sm uppercase tracking-widest mb-4"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--accent)' }}
@@ -316,16 +417,16 @@ export function SettingsScreen() {
             </h2>
 
             {/* Track Length */}
-            <div className="mb-6">
+            <div className="mb-8">
               <label
-                className="block text-xs uppercase tracking-widest mb-2"
+                className="block text-xs uppercase tracking-widest mb-3"
                 style={{ fontFamily: 'var(--font-label)', color: 'var(--muted-fg)' }}
               >
                 Track Length: <span style={{ color: 'var(--accent)' }}>{trackLength}</span> steps
               </label>
               <input
                 type="range"
-                className="cyber-range"
+                className="w-full my-2"
                 min={10}
                 max={200}
                 step={5}
@@ -339,9 +440,9 @@ export function SettingsScreen() {
             </div>
 
             {/* Country Selection */}
-            <div className="mb-6">
+            <div className="mb-8">
               <label
-                className="block text-xs uppercase tracking-widest mb-3"
+                className="block text-xs uppercase tracking-widest mb-4"
                 style={{ fontFamily: 'var(--font-label)', color: 'var(--muted-fg)' }}
               >
                 Select Nations ({selectedCountries.length}/12):
@@ -391,7 +492,7 @@ export function SettingsScreen() {
                   return (
                     <div
                       key={id}
-                      className="flex items-center gap-2 p-2 cyber-chamfer-sm"
+                      className="flex items-center gap-2 p-2 rounded-sm"
                       style={{
                         background: 'var(--bg)',
                         border: '1px solid var(--border)',
@@ -447,8 +548,8 @@ export function SettingsScreen() {
         </div>
 
         {/* ─── Right Column: Leaderboard ─── */}
-        <div className="flex flex-col gap-4">
-          <div className="cyber-card-holographic cyber-chamfer p-4">
+        <div className="flex flex-col gap-6">
+          <div className="cyber-card-holographic cyber-chamfer p-6 sm:p-8">
             <h2
               className="text-sm uppercase tracking-widest mb-4"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--accent)' }}
@@ -501,7 +602,7 @@ export function SettingsScreen() {
           </div>
 
           {/* Connection info panel */}
-          <div className="cyber-card cyber-chamfer-sm p-3">
+          <div className="cyber-card cyber-chamfer-sm p-6 sm:p-8">
             <h3
               className="text-xs uppercase tracking-widest mb-2"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--accent-tertiary)' }}
@@ -518,6 +619,7 @@ export function SettingsScreen() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

@@ -119,38 +119,38 @@ export function RaceScreen() {
 
           {/* Floating progress bars overlay */}
           <div
-            className="absolute left-3 top-3 flex flex-col gap-1.5 z-10"
+            className="absolute left-3 top-3 flex flex-col gap-2 z-10"
             style={{
               background: 'rgba(10, 10, 30, 0.85)',
               borderRadius: '8px',
-              padding: '12px 14px',
+              padding: '16px 20px',
               border: '1px solid var(--border)',
               backdropFilter: 'blur(8px)',
-              maxWidth: '240px',
+              minWidth: '280px',
             }}
           >
-            <div className="text-[10px] uppercase tracking-widest mb-1.5" style={{ fontFamily: 'var(--font-label)', color: 'var(--accent-tertiary)' }}>
+            <div className="text-xs uppercase tracking-widest mb-2" style={{ fontFamily: 'var(--font-label)', color: 'var(--accent-tertiary)' }}>
               Race Progress
             </div>
             {sortedTeams.map((team, i) => {
               const pct = Math.round((team.position / trackLength) * 100);
               return (
                 <div key={team.id} className="flex items-center gap-2">
-                  <span className="text-[10px] w-4 text-center font-bold" style={{ color: 'var(--muted-fg)' }}>
+                  <span className="text-xs w-4 text-center font-bold" style={{ color: 'var(--muted-fg)' }}>
                     {i + 1}
                   </span>
                   <img
                     src={team.flagImage}
                     alt={team.name}
-                    className="w-5 h-4 object-cover rounded-[2px]"
+                    className="w-6 h-5 object-cover rounded-[2px]"
                     crossOrigin="anonymous"
                   />
                   {team.giftImageUrl ? (
-                    <img src={team.giftImageUrl} alt={team.giftName} className="w-5 h-5 object-contain shrink-0" crossOrigin="anonymous" title={team.giftName} />
+                    <img src={team.giftImageUrl} alt={team.giftName} className="w-6 h-6 object-contain shrink-0" crossOrigin="anonymous" title={team.giftName} />
                   ) : (
-                    <span className="text-[12px] shrink-0" title={team.giftName}>🎁</span>
+                    <span className="text-sm shrink-0" title={team.giftName}>🎁</span>
                   )}
-                  <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--border)', width: '80px' }}>
+                  <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
@@ -161,7 +161,7 @@ export function RaceScreen() {
                     />
                   </div>
                   <span
-                    className="text-[10px] font-bold w-7 text-right"
+                    className="text-xs font-bold w-8 text-right"
                     style={{ fontFamily: 'var(--font-label)', color: team.color }}
                   >
                     {pct}%
@@ -174,11 +174,11 @@ export function RaceScreen() {
 
         {/* ─── Right Sidebar ─── */}
         <div
-          className="w-64 flex-shrink-0 flex flex-col gap-3 p-3 overflow-y-auto"
+          className="w-72 flex-shrink-0 flex flex-col gap-4 p-4 overflow-y-auto"
           style={{ borderLeft: '1px solid var(--border)', background: 'rgba(10, 10, 30, 0.5)' }}
         >
           {/* Nation Wins */}
-          <div className="cyber-card-holographic cyber-chamfer-sm p-2.5">
+          <div className="cyber-card-holographic cyber-chamfer-sm p-4">
             <h3
               className="text-[10px] uppercase tracking-widest mb-2"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--gold)' }}
@@ -208,7 +208,7 @@ export function RaceScreen() {
           </div>
 
           {/* Top Donors */}
-          <div className="cyber-card cyber-chamfer-sm p-2.5">
+          <div className="cyber-card cyber-chamfer-sm p-4">
             <h3
               className="text-[10px] uppercase tracking-widest mb-2"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--accent-secondary)' }}

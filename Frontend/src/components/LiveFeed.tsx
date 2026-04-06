@@ -18,7 +18,7 @@ export function LiveFeed({ events }: LiveFeedProps) {
 
   if (events.length === 0) {
     return (
-      <div className="cyber-card cyber-chamfer-sm p-3">
+      <div className="cyber-card cyber-chamfer-sm p-4">
         <h3
           className="text-xs uppercase tracking-widest mb-2"
           style={{ fontFamily: 'var(--font-label)', color: 'var(--accent)' }}
@@ -34,7 +34,7 @@ export function LiveFeed({ events }: LiveFeedProps) {
   }
 
   return (
-    <div className="cyber-card cyber-chamfer-sm p-3">
+    <div className="cyber-card cyber-chamfer-sm p-4 flex flex-col min-h-0 h-full">
       <h3
         className="text-xs uppercase tracking-widest mb-2"
         style={{ fontFamily: 'var(--font-label)', color: 'var(--accent)' }}
