@@ -1,6 +1,6 @@
 // ─── Game Store ─── Zustand state for game data ───
 import { create } from 'zustand';
-import type { Team, GameStatus, WinRecord, ToastEvent, MoveEvent, WinnerEvent } from '../types/index.js';
+import type { Team, GameStatus, WinRecord, ToastEvent, MoveEvent, WinnerEvent, TikTokUserEvent, Liker } from '../types/index.js';
 
 interface GameStore {
   // State
@@ -12,6 +12,7 @@ interface GameStore {
   winHistory: WinRecord[];
   toasts: ToastEvent[];
   recentGifts: MoveEvent[];
+  topLikers: Liker[];
 
   // Actions
   setFullState: (state: {
@@ -22,6 +23,7 @@ interface GameStore {
     winHistory: WinRecord[];
   }) => void;
   moveTeam: (event: MoveEvent) => void;
+  processLike: (event: TikTokUserEvent) => void;
   setWinner: (event: WinnerEvent) => void;
   addToast: (toast: ToastEvent) => void;
   removeToast: (id: string) => void;
@@ -39,6 +41,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   winHistory: [],
   toasts: [],
   recentGifts: [],
+  topLikers: [],
 
   setFullState: (state) => {
     set({
@@ -84,6 +87,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ teams: updatedTeams, recentGifts });
   },
 
+  processLike: (event) => {
+    const likers = get().topLikers.map(l => ({ ...l }));
+    const existing = likers.find(l => l.userId === event.userId || l.userName === event.userName);
+    const count = Number(event.likeCount) || 1;
+    if (existing) {
+      // TikTok connector sometimes sends total likes by user so far, sometimes increments.
+      // Let's add them up, but if someone spams, it might inflate if it's total.
+      // Usually, it's an increment per batch.
+      existing.likeCount += count;
+    } else {
+      likers.push({
+        userId: event.userId,
+        userName: event.userName,
+        userAvatar: event.userAvatar,
+        likeCount: count,
+      });
+    }
+    likers.sort((a, b) => b.likeCount - a.likeCount);
+    set({ topLikers: likers.slice(0, 10) });
+  },
+
   setWinner: (event) => {
     set({
       status: 'finished',
@@ -123,5 +147,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     standings: [],
     toasts: [],
     recentGifts: [],
+    topLikers: [],
   }),
 }));

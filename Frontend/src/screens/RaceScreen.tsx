@@ -17,6 +17,7 @@ export function RaceScreen() {
   const winner = useGameStore(s => s.winner);
   const winHistory = useGameStore(s => s.winHistory);
   const recentGifts = useGameStore(s => s.recentGifts);
+  const topLikers = useGameStore(s => s.topLikers);
   const [showWinner, setShowWinner] = useState(false);
   const viewerCount = useSocketStore(s => s.viewerCount);
 
@@ -119,38 +120,38 @@ export function RaceScreen() {
 
           {/* Floating progress bars overlay */}
           <div
-            className="absolute left-3 top-3 flex flex-col gap-2 z-10"
+            className="absolute left-4 top-4 flex flex-col gap-2.5 z-10"
             style={{
               background: 'rgba(10, 10, 30, 0.85)',
               borderRadius: '8px',
-              padding: '16px 20px',
+              padding: '20px 24px',
               border: '1px solid var(--border)',
               backdropFilter: 'blur(8px)',
               minWidth: '280px',
             }}
           >
-            <div className="text-xs uppercase tracking-widest mb-2" style={{ fontFamily: 'var(--font-label)', color: 'var(--accent-tertiary)' }}>
+            <div className="text-sm uppercase tracking-widest mb-3" style={{ fontFamily: 'var(--font-label)', color: 'var(--accent-tertiary)' }}>
               Race Progress
             </div>
             {sortedTeams.map((team, i) => {
               const pct = Math.round((team.position / trackLength) * 100);
               return (
-                <div key={team.id} className="flex items-center gap-2">
-                  <span className="text-xs w-4 text-center font-bold" style={{ color: 'var(--muted-fg)' }}>
+                <div key={team.id} className="flex items-center gap-2.5">
+                  <span className="text-sm w-4 text-center font-bold" style={{ color: 'var(--muted-fg)' }}>
                     {i + 1}
                   </span>
                   <img
                     src={team.flagImage}
                     alt={team.name}
-                    className="w-6 h-5 object-cover rounded-[2px]"
+                    className="w-8 h-6 object-cover rounded-[2px]"
                     crossOrigin="anonymous"
                   />
                   {team.giftImageUrl ? (
-                    <img src={team.giftImageUrl} alt={team.giftName} className="w-6 h-6 object-contain shrink-0" crossOrigin="anonymous" title={team.giftName} />
+                    <img src={team.giftImageUrl} alt={team.giftName} className="w-8 h-8 object-contain shrink-0" crossOrigin="anonymous" title={team.giftName} />
                   ) : (
-                    <span className="text-sm shrink-0" title={team.giftName}>🎁</span>
+                    <span className="text-base shrink-0" title={team.giftName}>🎁</span>
                   )}
-                  <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+                  <div className="flex-1 h-3.5 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
@@ -161,7 +162,7 @@ export function RaceScreen() {
                     />
                   </div>
                   <span
-                    className="text-xs font-bold w-8 text-right"
+                    className="text-sm font-bold w-10 text-right"
                     style={{ fontFamily: 'var(--font-label)', color: team.color }}
                   >
                     {pct}%
@@ -174,11 +175,11 @@ export function RaceScreen() {
 
         {/* ─── Right Sidebar ─── */}
         <div
-          className="w-72 flex-shrink-0 flex flex-col gap-4 p-4 overflow-y-auto"
+          className="w-80 flex-shrink-0 flex flex-col gap-4 p-4 overflow-y-auto"
           style={{ borderLeft: '1px solid var(--border)', background: 'rgba(10, 10, 30, 0.5)' }}
         >
           {/* Nation Wins */}
-          <div className="cyber-card-holographic cyber-chamfer-sm p-4">
+          <div className="cyber-card-holographic cyber-chamfer-sm" style={{ padding: '16px' }}>
             <h3
               className="text-[10px] uppercase tracking-widest mb-2"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--gold)' }}
@@ -208,9 +209,9 @@ export function RaceScreen() {
           </div>
 
           {/* Top Donors */}
-          <div className="cyber-card cyber-chamfer-sm p-4">
+          <div className="cyber-card cyber-chamfer-sm" style={{ padding: '16px' }}>
             <h3
-              className="text-[10px] uppercase tracking-widest mb-2"
+              className="text-[10px] uppercase tracking-widest mb-3"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--accent-secondary)' }}
             >
               💎 Top Donors
@@ -222,16 +223,26 @@ export function RaceScreen() {
                 {allDonors.map((donor, i) => (
                   <div
                     key={donor.userId}
-                    className="flex items-center gap-1.5 text-[10px]"
+                    className="flex items-center gap-2 text-xs"
                     style={{
-                      borderLeft: i < 3 ? `2px solid var(--accent-secondary)` : '2px solid transparent',
-                      paddingLeft: '4px',
+                      borderLeft: i < 3 ? `3px solid var(--accent-secondary)` : '3px solid transparent',
+                      paddingLeft: '8px',
+                      paddingTop: '2px',
+                      paddingBottom: '2px',
                     }}
                   >
-                    <span className="font-bold w-3 text-center" style={{ color: 'var(--muted-fg)' }}>
+                    <span className="font-bold w-4 text-center" style={{ color: 'var(--muted-fg)' }}>
                       {i + 1}
                     </span>
                     <span>{donor.teamFlag}</span>
+                    {donor.userAvatar && (
+                      <img
+                        src={donor.userAvatar}
+                        alt="Avatar"
+                        className="w-5 h-5 rounded-full object-cover shrink-0"
+                        crossOrigin="anonymous"
+                      />
+                    )}
                     <span className="flex-1 truncate" style={{ color: 'var(--fg)' }}>
                       {donor.userName}
                     </span>
@@ -240,6 +251,55 @@ export function RaceScreen() {
                       style={{ color: 'var(--accent-secondary)', fontFamily: 'var(--font-heading)' }}
                     >
                       {donor.giftCount}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Top Likes */}
+          <div className="cyber-card cyber-chamfer-sm" style={{ padding: '16px' }}>
+            <h3
+              className="text-[10px] uppercase tracking-widest mb-3"
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--accent)' }}
+            >
+              ❤️ Top Likes
+            </h3>
+            {topLikers.length === 0 ? (
+              <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>No likes yet<span className="blink-cursor" /></p>
+            ) : (
+              <div className="flex flex-col gap-1">
+                {topLikers.slice(0, 5).map((liker, i) => (
+                  <div
+                    key={liker.userId}
+                    className="flex items-center gap-2 text-xs"
+                    style={{
+                      borderLeft: i < 3 ? `3px solid var(--accent)` : '3px solid transparent',
+                      paddingLeft: '8px',
+                      paddingTop: '2px',
+                      paddingBottom: '2px',
+                    }}
+                  >
+                    <span className="font-bold w-4 text-center" style={{ color: 'var(--muted-fg)' }}>
+                      {i + 1}
+                    </span>
+                    {liker.userAvatar && (
+                      <img
+                        src={liker.userAvatar}
+                        alt="Avatar"
+                        className="w-5 h-5 rounded-full object-cover shrink-0"
+                        crossOrigin="anonymous"
+                      />
+                    )}
+                    <span className="flex-1 truncate" style={{ color: 'var(--fg)' }}>
+                      {liker.userName}
+                    </span>
+                    <span
+                      className="font-bold"
+                      style={{ color: 'var(--accent)', fontFamily: 'var(--font-heading)' }}
+                    >
+                      {liker.likeCount}
                     </span>
                   </div>
                 ))}

@@ -4,6 +4,7 @@ import { Suspense, useMemo } from 'react';
 import { RaceGround } from './RaceGround';
 import { FlagRunner3D } from './FlagRunner3D';
 import { FinishLine3D } from './FinishLine3D';
+import { StartLine3D } from './StartLine3D';
 import type { Team } from '../../types/index';
 
 interface RaceScene3DProps {
@@ -41,7 +42,7 @@ export function RaceScene3D({ teams, trackLength, winnerId }: RaceScene3DProps) 
         }}
         gl={{ antialias: true, alpha: false }}
         onCreated={({ camera }) => {
-          camera.lookAt(0, 0, 0);
+          camera.lookAt(0, -1, -1);
         }}
       >
         <Suspense fallback={null}>
@@ -66,36 +67,44 @@ export function RaceScene3D({ teams, trackLength, winnerId }: RaceScene3DProps) 
           {/* Background color */}
           <color attach="background" args={['#0a0a1e']} />
 
-          {/* Race Ground */}
-          <RaceGround
-            laneCount={laneCount}
-            laneWidth={laneWidth}
-            trackLength={trackWorldLength}
-          />
+          <group position={[0, 0, -2.5]}>
+            {/* Race Ground */}
+            <RaceGround
+              laneCount={laneCount}
+              laneWidth={laneWidth}
+              trackLength={trackWorldLength}
+            />
 
-          {/* Finish Line */}
-          <FinishLine3D
-            position={[0, 0.02, -(trackWorldLength / 2)]}
-            width={totalWidth}
-          />
+            {/* Start Line */}
+            <StartLine3D
+              position={[0, 0.02, trackWorldLength / 2 - 0.5]}
+              width={totalWidth}
+            />
 
-          {/* Flag Runners */}
-          {teams.map((team, index) => {
-            const laneX = (index - (laneCount - 1) / 2) * laneWidth;
-            const progress = Math.min(team.position / trackLength, 1);
-            const zPos = (trackWorldLength / 2 - 0.5) - progress * (trackWorldLength - 1);
+            {/* Finish Line */}
+            <FinishLine3D
+              position={[0, 0.02, -(trackWorldLength / 2)]}
+              width={totalWidth}
+            />
 
-            return (
-              <FlagRunner3D
-                key={team.id}
-                team={team}
-                position={[laneX, 0.5, zPos]}
-                isLeading={team.position > 0 && team.position >= maxPos}
-                isWinner={winnerId === team.id}
-                progress={progress}
-              />
-            );
-          })}
+            {/* Flag Runners */}
+            {teams.map((team, index) => {
+              const laneX = (index - (laneCount - 1) / 2) * laneWidth;
+              const progress = Math.min(team.position / trackLength, 1);
+              const zPos = (trackWorldLength / 2 - 0.5) - progress * (trackWorldLength - 1);
+
+              return (
+                <FlagRunner3D
+                  key={team.id}
+                  team={team}
+                  position={[laneX, 0.5, zPos]}
+                  isLeading={team.position > 0 && team.position >= maxPos}
+                  isWinner={winnerId === team.id}
+                  progress={progress}
+                />
+              );
+            })}
+          </group>
         </Suspense>
       </Canvas>
     </div>

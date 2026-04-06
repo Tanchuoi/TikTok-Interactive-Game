@@ -83,6 +83,7 @@ export function useSocketListener() {
     };
 
     const handleLike = (data: TikTokUserEvent) => {
+      useGameStore.getState().processLike(data);
       addToast({
         id: makeToastId(),
         type: 'like',

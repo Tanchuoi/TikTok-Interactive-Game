@@ -18,6 +18,13 @@ export interface Donor {
   giftCount: number;
 }
 
+export interface Liker {
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  likeCount: number;
+}
+
 export interface Team extends TeamConfig {
   position: number;
   donors: Donor[];

@@ -2,7 +2,7 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { Billboard, Text } from '@react-three/drei';
+import { Billboard, Text, useTexture } from '@react-three/drei';
 import type { Team } from '../../types/index';
 
 interface FlagRunner3DProps {
@@ -18,6 +18,10 @@ export function FlagRunner3D({ team, position, isLeading, isWinner, progress: _p
   const flagRef = useRef<THREE.Mesh>(null);
   const targetZ = useRef(position[2]);
   const speed = useRef(0);
+
+  // Load flag texture
+  const flagTexture = useTexture(team.flagImage);
+  flagTexture.colorSpace = THREE.SRGBColorSpace;
 
   // Color from team
   const teamColor = useMemo(() => new THREE.Color(team.color), [team.color]);
@@ -75,33 +79,16 @@ export function FlagRunner3D({ team, position, isLeading, isWinner, progress: _p
         />
       </mesh>
 
-      {/* Flag mesh — colored plane with team color */}
+      {/* Flag mesh — map flag texture */}
       <mesh ref={flagRef} position={[0, 0.45, 0]}>
         <planeGeometry args={[0.8, 0.5, 16, 8]} />
         <meshStandardMaterial
-          color={teamColor}
+          map={flagTexture}
           side={THREE.DoubleSide}
-          emissive={teamColor}
-          emissiveIntensity={isLeading ? 0.3 : 0.1}
           roughness={0.4}
           metalness={0.1}
         />
       </mesh>
-
-      {/* Country code on flag */}
-      <Billboard position={[0, 0.45, 0.05]}>
-        <Text
-          fontSize={0.2}
-          color="#ffffff"
-          anchorX="center"
-          anchorY="middle"
-          fontWeight="bold"
-          outlineWidth={0.015}
-          outlineColor="#000000"
-        >
-          {team.id.toUpperCase()}
-        </Text>
-      </Billboard>
 
       {/* Country name label below */}
       <Billboard position={[0, -0.1, 0]}>
