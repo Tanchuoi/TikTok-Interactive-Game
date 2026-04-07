@@ -113,7 +113,7 @@ export function RaceScreen() {
         {/* 3D Race Scene — takes most of the space */}
         <div className="flex-1 relative">
           <RaceScene3D
-            teams={sortedTeams}
+            teams={teams}
             trackLength={trackLength}
             winnerId={winner?.id}
           />
@@ -222,7 +222,7 @@ export function RaceScreen() {
               <div className="flex flex-col gap-1">
                 {allDonors.map((donor, i) => (
                   <div
-                    key={donor.userId}
+                    key={`${donor.teamName}-${donor.userId}-${i}`}
                     className="flex items-center gap-2 text-xs"
                     style={{
                       borderLeft: i < 3 ? `3px solid var(--accent-secondary)` : '3px solid transparent',

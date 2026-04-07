@@ -1,5 +1,6 @@
-// ─── Gift Popup / Toast Overlay ─── Floating notifications ───
+import { useEffect, useRef } from 'react';
 import { useGameStore } from '../stores/useGameStore.js';
+import followSound from '../assets/sound/donate.mp3';
 
 const TYPE_ICONS: Record<string, string> = {
   gift: '🎁',
@@ -17,6 +18,36 @@ const TYPE_COLORS: Record<string, string> = {
 
 export function GiftPopup() {
   const toasts = useGameStore(s => s.toasts);
+  const processedToasts = useRef<Set<string>>(new Set());
+  const soundRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    soundRef.current = new Audio(followSound);
+  }, []);
+
+  useEffect(() => {
+    if (toasts.length === 0) return;
+
+    // Check for new follow toasts
+    const latest = toasts[0];
+    if (latest.type === 'follow' && !processedToasts.current.has(latest.id)) {
+      processedToasts.current.add(latest.id);
+      
+      // Play follow sound
+      if (soundRef.current) {
+        soundRef.current.currentTime = 0;
+        soundRef.current.play().catch(e => console.error("Follow sound failed", e));
+      }
+    }
+
+    // Optional: cleanup the set if it grows too large
+    if (processedToasts.current.size > 50) {
+      const activeIds = new Set(toasts.map(t => t.id));
+      processedToasts.current.forEach(id => {
+        if (!activeIds.has(id)) processedToasts.current.delete(id);
+      });
+    }
+  }, [toasts]);
 
   if (toasts.length === 0) return null;
 

@@ -1,11 +1,32 @@
 // ─── RaceScene3D ─── Main Three.js Canvas for the race ───
 import { Canvas } from '@react-three/fiber';
-import { Suspense, useMemo } from 'react';
+import { Suspense, useMemo, useState, useEffect, useRef } from 'react';
 import { RaceGround } from './RaceGround';
 import { FlagRunner3D } from './FlagRunner3D';
 import { FinishLine3D } from './FinishLine3D';
 import { StartLine3D } from './StartLine3D';
-import type { Team } from '../../types/index';
+import { FruitProjectile3D } from './FruitProjectile3D';
+import { useGameStore } from '../../stores/useGameStore';
+import type { Team, MoveEvent } from '../../types/index';
+
+// Import fruits
+import apple from '../../assets/img/fruits/apple.webp';
+import banana from '../../assets/img/fruits/banana.webp';
+import grapes from '../../assets/img/fruits/grapes.webp';
+import kiwi from '../../assets/img/fruits/kiwi.webp';
+import lime from '../../assets/img/fruits/lime.webp';
+import mango from '../../assets/img/fruits/mango.webp';
+import orange from '../../assets/img/fruits/orange.webp';
+import pear from '../../assets/img/fruits/pear.webp';
+import pineapple from '../../assets/img/fruits/pineapple.webp';
+import strawberry from '../../assets/img/fruits/strawberry.webp';
+import tomato from '../../assets/img/fruits/tomato.webp';
+import watermelon from '../../assets/img/fruits/watermelon.webp';
+
+// Sound effect
+import dingSound from '../../assets/sound/ding-sound-effect.mp3';
+
+const FRUITS = [apple, banana, grapes, kiwi, lime, mango, orange, pear, pineapple, strawberry, tomato, watermelon];
 
 interface RaceScene3DProps {
   teams: Team[];
@@ -13,14 +34,113 @@ interface RaceScene3DProps {
   winnerId?: string;
 }
 
+interface ActiveFruit {
+  id: string;
+  fruitImage: string;
+  startPosition: [number, number, number];
+  targetPosition: [number, number, number];
+  teamId: string;
+  steps: number;
+}
+
 export function RaceScene3D({ teams, trackLength, winnerId }: RaceScene3DProps) {
+  const recentGifts = useGameStore(s => s.recentGifts);
   const laneCount = teams.length;
   const laneWidth = 1.4;
   const totalWidth = laneCount * laneWidth;
   const trackWorldLength = 16;
+  const startZ = trackWorldLength / 2 - 0.5;
+  const finishZ = -(trackWorldLength / 2);
+
+  // Visual positions (mapping teamId to position value)
+  const [visualPositions, setVisualPositions] = useState<Record<string, number>>({});
+  const [activeFruits, setActiveFruits] = useState<ActiveFruit[]>([]);
+  const processedGifts = useRef<Set<MoveEvent>>(new Set());
+  const dingAudio = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    dingAudio.current = new Audio(dingSound);
+  }, []);
+
+  // Initialize visual positions for all teams
+  useEffect(() => {
+    setVisualPositions(prev => {
+      const next = { ...prev };
+      let changed = false;
+      teams.forEach(t => {
+        if (next[t.id] === undefined) {
+          next[t.id] = t.position;
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [teams]);
+
+  // Handle new gifts
+  useEffect(() => {
+    if (recentGifts.length === 0) return;
+
+    // Process all recent gifts that haven't been handled yet
+    [...recentGifts].reverse().forEach(gift => {
+      if (processedGifts.current.has(gift)) return;
+      processedGifts.current.add(gift);
+
+      const teamIndex = teams.findIndex(t => t.id === gift.teamId);
+      if (teamIndex === -1) return;
+
+      const laneX = (teamIndex - (laneCount - 1) / 2) * laneWidth;
+      const fruitImage = FRUITS[Math.floor(Math.random() * FRUITS.length)];
+
+      // Use visual position at the moment of spawning - ensure we don't use 0 if not initialized
+      const currentPos = visualPositions[gift.teamId] ?? teams.find(t => t.id === gift.teamId)?.position ?? 0;
+      const progress = Math.min(currentPos / trackLength, 1);
+      const targetZ = startZ - progress * (trackWorldLength - 1);
+
+      const newFruit: ActiveFruit = {
+        id: Math.random().toString(36).substr(2, 9),
+        fruitImage,
+        startPosition: [laneX, 0.5, finishZ],
+        targetPosition: [laneX, 0.5, targetZ],
+        teamId: gift.teamId,
+        steps: gift.giftData.steps
+      };
+
+      setActiveFruits(prev => [...prev, newFruit]);
+    });
+
+    if (processedGifts.current.size > 100) {
+      const recentSet = new Set(recentGifts);
+      processedGifts.current.forEach(g => {
+        if (!recentSet.has(g)) processedGifts.current.delete(g);
+      });
+    }
+  }, [recentGifts, teams, visualPositions, laneCount, laneWidth, startZ, finishZ, trackLength, trackWorldLength]);
+
+  const handleFruitHit = (fruitId: string, teamId: string, steps: number) => {
+    if (dingAudio.current) {
+      dingAudio.current.currentTime = 0;
+      dingAudio.current.play().catch(e => console.error("Sound play failed", e));
+    }
+
+    setVisualPositions(prev => {
+      const team = teams.find(t => t.id === teamId);
+      if (!team) return prev;
+
+      const currentPos = prev[teamId] ?? team.position;
+      const storePos = team.position;
+
+      // We increment by steps, but cap at storePos to stay in sync
+      const nextPos = Math.min(currentPos + steps, storePos);
+      return { ...prev, [teamId]: nextPos };
+    });
+
+    setActiveFruits(prev => prev.filter(f => f.id !== fruitId));
+  };
 
   // Sort by position to identify leader
-  const maxPos = Math.max(...teams.map(t => t.position), 0);
+  const currentPositions = teams.map(t => visualPositions[t.id] ?? t.position);
+  const maxPos = Math.max(...currentPositions, 0);
 
   // Camera adjusted for good isometric view
   const cameraPosition = useMemo<[number, number, number]>(() => {
@@ -46,7 +166,6 @@ export function RaceScene3D({ teams, trackLength, winnerId }: RaceScene3DProps) 
         }}
       >
         <Suspense fallback={null}>
-          {/* Strong lighting to ensure visibility */}
           <ambientLight intensity={0.6} />
           <directionalLight
             position={[8, 15, 10]}
@@ -61,44 +180,53 @@ export function RaceScene3D({ teams, trackLength, winnerId }: RaceScene3DProps) 
           <pointLight position={[-6, 6, -8]} intensity={0.4} color="#00ff88" />
           <pointLight position={[6, 6, 8]} intensity={0.4} color="#ff00ff" />
 
-          {/* Fog for depth */}
           <fog attach="fog" args={['#0a0a1e', 15, 35]} />
-
-          {/* Background color */}
           <color attach="background" args={['#0a0a1e']} />
 
           <group position={[0, 0, -2.5]}>
-            {/* Race Ground */}
             <RaceGround
               laneCount={laneCount}
               laneWidth={laneWidth}
               trackLength={trackWorldLength}
             />
 
-            {/* Start Line */}
             <StartLine3D
-              position={[0, 0.02, trackWorldLength / 2 - 0.5]}
+              position={[0, 0.02, startZ]}
               width={totalWidth}
             />
 
-            {/* Finish Line */}
             <FinishLine3D
-              position={[0, 0.02, -(trackWorldLength / 2)]}
+              position={[0, 0.02, finishZ]}
               width={totalWidth}
             />
+
+            {/* Fruits in the air */}
+            {activeFruits.map(fruit => (
+              <FruitProjectile3D
+                key={fruit.id}
+                id={fruit.id}
+                fruitImage={fruit.fruitImage}
+                startPosition={fruit.startPosition}
+                targetPosition={fruit.targetPosition}
+                onHit={() => handleFruitHit(fruit.id, fruit.teamId, fruit.steps)}
+                teamId={fruit.teamId}
+                targetPositionValue={fruit.steps}
+              />
+            ))}
 
             {/* Flag Runners */}
             {teams.map((team, index) => {
               const laneX = (index - (laneCount - 1) / 2) * laneWidth;
-              const progress = Math.min(team.position / trackLength, 1);
-              const zPos = (trackWorldLength / 2 - 0.5) - progress * (trackWorldLength - 1);
+              const visualPos = visualPositions[team.id] ?? team.position;
+              const progress = Math.min(visualPos / trackLength, 1);
+              const zPos = startZ - progress * (trackWorldLength - 1);
 
               return (
                 <FlagRunner3D
                   key={team.id}
                   team={team}
                   position={[laneX, 0.5, zPos]}
-                  isLeading={team.position > 0 && team.position >= maxPos}
+                  isLeading={visualPos > 0 && visualPos >= maxPos}
                   isWinner={winnerId === team.id}
                   progress={progress}
                 />
