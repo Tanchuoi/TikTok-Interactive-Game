@@ -13,6 +13,7 @@ import type { TeamConfig } from '../types/index.js';
 const CustomSelect = ({ value, onChange, options }: any) => {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const wrapperRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState({ left: 0, top: 0, width: 0, maxHeight: 320 });
@@ -78,7 +79,11 @@ const CustomSelect = ({ value, onChange, options }: any) => {
 
   const filteredOptions = options.filter((o: any) => 
     o.label.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ).sort((a: any, b: any) => {
+    if (sortOrder === 'asc') return (a.price || 0) - (b.price || 0);
+    if (sortOrder === 'desc') return (b.price || 0) - (a.price || 0);
+    return 0;
+  });
 
   return (
     <div className="relative flex-1 min-w-0" ref={wrapperRef}>
@@ -88,7 +93,7 @@ const CustomSelect = ({ value, onChange, options }: any) => {
         onClick={() => { setOpen(!open); setSearchTerm(''); }}
       >
         <div className="flex items-center gap-2.5 truncate">
-           {selected?.imageUrl ? <img src={selected.imageUrl} className="w-6 h-6 object-contain shrink-0" crossOrigin="anonymous" /> : null}
+           {selected?.imageUrl ? <img src={selected.imageUrl} className="w-6 h-6 object-contain shrink-0" /> : null}
            <span className="truncate flex-1 text-left text-base">{selected?.emoji ? `${selected.emoji} ` : ''}{selected?.label}</span>
         </div>
         <span className="text-[12px] shrink-0 ml-2">▼</span>
@@ -105,7 +110,7 @@ const CustomSelect = ({ value, onChange, options }: any) => {
             maxHeight: `${coords.maxHeight}px`
           }}
         >
-          <div className="p-2 border-b border-[var(--border)] bg-[var(--bg)] shrink-0">
+          <div className="p-2 border-b border-[var(--border)] bg-[var(--bg)] shrink-0 flex gap-2">
             <input 
               type="text" 
               className="w-full bg-[var(--card)] border border-[var(--border)] rounded-[2px] px-3 py-2 text-sm outline-none focus:border-[var(--accent)] text-white"
@@ -115,6 +120,16 @@ const CustomSelect = ({ value, onChange, options }: any) => {
               onClick={(e) => e.stopPropagation()}
               autoFocus
             />
+            <button 
+              className="px-2 py-1 bg-[rgba(255,255,255,0.05)] border border-[var(--border)] rounded text-xs hover:bg-[rgba(255,255,255,0.1)] transition-colors flex items-center justify-center min-w-[28px]"
+              onClick={(e) => {
+                 e.stopPropagation();
+                 setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+              }}
+              title="Sort by Diamond Value"
+            >
+              {sortOrder === 'asc' ? '↑' : '↓'}
+            </button>
           </div>
           <div className="overflow-y-auto flex-1">
             {filteredOptions.length > 0 ? filteredOptions.map((opt: any, index: number) => (
@@ -123,7 +138,7 @@ const CustomSelect = ({ value, onChange, options }: any) => {
                 className="px-3 py-2.5 text-base flex items-center gap-3 hover:bg-[var(--accent)] hover:text-black cursor-pointer transition-colors"
                 onClick={() => { onChange(opt.value); setOpen(false); }}
               >
-                {opt.imageUrl ? <img src={opt.imageUrl} className="w-7 h-7 object-contain shrink-0" crossOrigin="anonymous" /> : <span className="w-7 text-center">{opt.emoji}</span>}
+                {opt.imageUrl ? <img src={opt.imageUrl} className="w-7 h-7 object-contain shrink-0" /> : <span className="w-7 text-center">{opt.emoji}</span>}
                 <span className="flex-1 text-sm tracking-wide">{opt.label}</span>
               </div>
             )) : (
@@ -461,7 +476,7 @@ export function SettingsScreen() {
                         boxShadow: isSelected ? `0 0 8px ${country.color}30` : 'none',
                       }}
                     >
-                      <img src={country.flagImage} alt={country.name} className="w-8 h-5 object-cover mx-auto mb-0.5 rounded-sm" crossOrigin="anonymous" />
+                      <img src={country.flagImage} alt={country.name} className="w-8 h-5 object-cover mx-auto mb-0.5 rounded-sm" />
                       <div
                         className="text-[10px] uppercase tracking-wider font-bold"
                         style={{
@@ -498,7 +513,7 @@ export function SettingsScreen() {
                         border: '1px solid var(--border)',
                       }}
                     >
-                      <img src={country.flagImage} alt={country.name} className="w-6 h-4 object-cover rounded-sm" crossOrigin="anonymous" />
+                      <img src={country.flagImage} alt={country.name} className="w-6 h-4 object-cover rounded-sm" />
                       <span
                         className="text-xs font-bold uppercase flex-1"
                         style={{ fontFamily: 'var(--font-heading)', color: country.color }}
@@ -513,7 +528,8 @@ export function SettingsScreen() {
                           value: gift.giftId,
                           label: `${gift.name} ${gift.price !== undefined ? `(${gift.price} Dia)` : ''}`,
                           emoji: gift.emoji,
-                          imageUrl: gift.imageUrl
+                          imageUrl: gift.imageUrl,
+                          price: gift.price || 0
                         }))}
                       />
                     </div>

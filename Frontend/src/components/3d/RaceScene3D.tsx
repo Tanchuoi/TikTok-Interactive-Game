@@ -28,6 +28,10 @@ import dingSound from '../../assets/sound/ding-sound-effect.mp3';
 
 const FRUITS = [apple, banana, grapes, kiwi, lime, mango, orange, pear, pineapple, strawberry, tomato, watermelon];
 
+import { useTexture } from '@react-three/drei';
+// Preload textures to avoid black screen flash on map update
+FRUITS.forEach(fruit => useTexture.preload(fruit));
+
 interface RaceScene3DProps {
   teams: Team[];
   trackLength: number;
@@ -183,7 +187,7 @@ export function RaceScene3D({ teams, trackLength, winnerId }: RaceScene3DProps) 
           <fog attach="fog" args={['#0a0a1e', 15, 35]} />
           <color attach="background" args={['#0a0a1e']} />
 
-          <group position={[0, 0, -2.5]}>
+          <group position={[1.4, 0, -2.5]}>
             <RaceGround
               laneCount={laneCount}
               laneWidth={laneWidth}

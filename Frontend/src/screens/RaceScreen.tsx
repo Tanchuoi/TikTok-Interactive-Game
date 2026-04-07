@@ -104,7 +104,7 @@ export function RaceScreen() {
           className="cyber-btn cyber-btn-ghost cyber-chamfer-sm text-xs"
           onClick={handleReset}
         >
-          ← Settings
+           Settings
         </button>
       </div>
 
@@ -144,10 +144,9 @@ export function RaceScreen() {
                     src={team.flagImage}
                     alt={team.name}
                     className="w-8 h-6 object-cover rounded-[2px]"
-                    crossOrigin="anonymous"
                   />
                   {team.giftImageUrl ? (
-                    <img src={team.giftImageUrl} alt={team.giftName} className="w-8 h-8 object-contain shrink-0" crossOrigin="anonymous" title={team.giftName} />
+                    <img src={team.giftImageUrl} alt={team.giftName} className="w-8 h-8 object-contain shrink-0" title={team.giftName} />
                   ) : (
                     <span className="text-base shrink-0" title={team.giftName}>🎁</span>
                   )}
@@ -240,7 +239,6 @@ export function RaceScreen() {
                         src={donor.userAvatar}
                         alt="Avatar"
                         className="w-5 h-5 rounded-full object-cover shrink-0"
-                        crossOrigin="anonymous"
                       />
                     )}
                     <span className="flex-1 truncate" style={{ color: 'var(--fg)' }}>
@@ -289,7 +287,6 @@ export function RaceScreen() {
                         src={liker.userAvatar}
                         alt="Avatar"
                         className="w-5 h-5 rounded-full object-cover shrink-0"
-                        crossOrigin="anonymous"
                       />
                     )}
                     <span className="flex-1 truncate" style={{ color: 'var(--fg)' }}>

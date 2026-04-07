@@ -137,7 +137,6 @@ export function LeaderboardScreen() {
                       src={team.flagImage}
                       alt={team.name}
                       className="w-8 h-5 object-cover rounded-sm"
-                      crossOrigin="anonymous"
                     />
                     <span
                       className="flex-1 text-sm font-bold uppercase"
@@ -196,7 +195,6 @@ export function LeaderboardScreen() {
                         src={team.flagImage}
                         alt={team.name}
                         className="w-5 h-3 object-cover rounded-[2px]"
-                        crossOrigin="anonymous"
                       />
                       <span className="flex-1 font-bold uppercase" style={{ fontFamily: 'var(--font-heading)', color: team.color }}>
                         {team.name}

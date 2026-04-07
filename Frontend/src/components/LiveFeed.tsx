@@ -56,14 +56,14 @@ export function LiveFeed({ events }: LiveFeedProps) {
             }}
           >
             {event.giftData.userAvatar ? (
-              <img src={event.giftData.userAvatar} alt="" className="w-5 h-5 rounded-full object-cover shrink-0 border border-[var(--border)]" crossOrigin="anonymous" />
+              <img src={event.giftData.userAvatar} alt="" className="w-5 h-5 rounded-full object-cover shrink-0 border border-[var(--border)]" />
             ) : (
               <span className="shrink-0">{event.teamFlag}</span>
             )}
             <span className="truncate flex-1 flex items-center flex-wrap gap-x-1" style={{ color: 'var(--muted-fg)' }}>
               <span style={{ color: 'var(--fg)', fontWeight: 'bold' }}>{event.giftData.userName}</span>
               {event.giftData.giftImageUrl && (
-                <img src={event.giftData.giftImageUrl} alt={event.giftData.giftName} className="w-4 h-4 object-contain" crossOrigin="anonymous" />
+                <img src={event.giftData.giftImageUrl} alt={event.giftData.giftName} className="w-4 h-4 object-contain" />
               )}
               {event.giftData.steps > 1 && (
                 <span style={{ color: 'var(--accent)', fontWeight: 'bold', marginRight: '2px' }}>x{event.giftData.steps}</span>

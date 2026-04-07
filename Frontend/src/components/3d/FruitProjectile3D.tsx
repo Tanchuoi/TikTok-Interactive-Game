@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Billboard, useTexture } from '@react-three/drei';
@@ -25,7 +25,7 @@ export function FruitProjectile3D({
   const meshRef = useRef<THREE.Group>(null);
   const texture = useTexture(fruitImage);
   const startTime = useRef(Date.now());
-  const duration = 0.8; // Duration in seconds
+  const duration = 1.3; // Duration in seconds
 
   useFrame(() => {
     if (!meshRef.current) return;

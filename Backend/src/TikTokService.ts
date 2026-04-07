@@ -98,7 +98,7 @@ class TikTokService extends EventEmitter {
         const user = data.user || {};
         const userId = user.uniqueId || user.userId || data.uniqueId || data.userId || 'unknown';
         const userName = user.nickname || user.uniqueId || data.nickname || data.uniqueId || 'Unknown';
-        const userAvatar = user.profilePictureUrl || data.profilePictureUrl || '';
+        const userAvatar = user.profilePicture?.url?.[0] || user.profilePicture?.urlList?.[0] || user.profilePictureUrl || data.profilePictureUrl || '';
 
         this.emit('gift', {
           giftId,
@@ -116,10 +116,11 @@ class TikTokService extends EventEmitter {
       const followEventName = WebcastEvent?.FOLLOW || 'follow';
       this.connection.on(followEventName, (data: any) => {
         const user = data.user || {};
+        const userAvatar = user.profilePicture?.url?.[0] || user.profilePicture?.urlList?.[0] || user.profilePictureUrl || data.profilePictureUrl || '';
         this.emit('follow', {
           userId: user.uniqueId || data.uniqueId || 'unknown',
           userName: user.nickname || user.uniqueId || data.nickname || 'Unknown',
-          userAvatar: user.profilePictureUrl || data.profilePictureUrl || '',
+          userAvatar,
         });
       });
 
@@ -127,10 +128,11 @@ class TikTokService extends EventEmitter {
       const shareEventName = WebcastEvent?.SHARE || 'share';
       this.connection.on(shareEventName, (data: any) => {
         const user = data.user || {};
+        const userAvatar = user.profilePicture?.url?.[0] || user.profilePicture?.urlList?.[0] || user.profilePictureUrl || data.profilePictureUrl || '';
         this.emit('share', {
           userId: user.uniqueId || data.uniqueId || 'unknown',
           userName: user.nickname || user.uniqueId || data.nickname || 'Unknown',
-          userAvatar: user.profilePictureUrl || data.profilePictureUrl || '',
+          userAvatar,
         });
       });
 
@@ -138,10 +140,11 @@ class TikTokService extends EventEmitter {
       const likeEventName = WebcastEvent?.LIKE || 'like';
       this.connection.on(likeEventName, (data: any) => {
         const user = data.user || {};
+        const userAvatar = user.profilePicture?.url?.[0] || user.profilePicture?.urlList?.[0] || user.profilePictureUrl || data.profilePictureUrl || '';
         this.emit('like', {
           userId: user.uniqueId || data.uniqueId || 'unknown',
           userName: user.nickname || user.uniqueId || data.nickname || 'Unknown',
-          userAvatar: user.profilePictureUrl || data.profilePictureUrl || '',
+          userAvatar,
           likeCount: data.likeCount || 1,
         });
       });
@@ -150,10 +153,11 @@ class TikTokService extends EventEmitter {
       const memberEventName = WebcastEvent?.MEMBER || 'member';
       this.connection.on(memberEventName, (data: any) => {
         const user = data.user || {};
+        const userAvatar = user.profilePicture?.url?.[0] || user.profilePicture?.urlList?.[0] || user.profilePictureUrl || data.profilePictureUrl || '';
         this.emit('member', {
           userId: user.uniqueId || 'unknown',
           userName: user.nickname || user.uniqueId || 'Unknown',
-          userAvatar: user.profilePictureUrl || '',
+          userAvatar,
           memberCount: data.memberCount,
         });
       });
@@ -170,10 +174,11 @@ class TikTokService extends EventEmitter {
       const chatEventName = WebcastEvent?.CHAT || 'chat';
       this.connection.on(chatEventName, (data: any) => {
         const user = data.user || {};
+        const userAvatar = user.profilePicture?.url?.[0] || user.profilePicture?.urlList?.[0] || user.profilePictureUrl || data.profilePictureUrl || '';
         this.emit('chat', {
           userId: user.uniqueId || 'unknown',
           userName: user.nickname || user.uniqueId || 'Unknown',
-          userAvatar: user.profilePictureUrl || '',
+          userAvatar,
           comment: data.comment || '',
         });
       });

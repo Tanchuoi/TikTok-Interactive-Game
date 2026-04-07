@@ -64,7 +64,7 @@ export function GiftPopup() {
         >
           <div className="flex items-center gap-2">
             {toast.userAvatar ? (
-              <img src={toast.userAvatar} alt="" className="w-6 h-6 rounded-full object-cover border border-[var(--border)] shrink-0" crossOrigin="anonymous" />
+              <img src={toast.userAvatar} alt="" className="w-6 h-6 rounded-full object-cover border border-[var(--border)] shrink-0" />
             ) : (
               <span className="text-sm shrink-0">{TYPE_ICONS[toast.type]}</span>
             )}
@@ -82,7 +82,7 @@ export function GiftPopup() {
                 {toast.message}
               </span>
               {toast.giftImageUrl && (
-                <img src={toast.giftImageUrl} alt="gift" className="w-5 h-5 object-contain" crossOrigin="anonymous" />
+                <img src={toast.giftImageUrl} alt="gift" className="w-5 h-5 object-contain" />
               )}
             </div>
             {toast.teamFlag && (
