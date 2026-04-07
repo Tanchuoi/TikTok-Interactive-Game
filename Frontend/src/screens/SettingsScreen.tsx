@@ -155,6 +155,7 @@ const CustomSelect = ({ value, onChange, options }: any) => {
 export function SettingsScreen() {
   const navigate = useNavigate();
   const tiktokConnected = useSocketStore(s => s.tiktokConnected);
+  const tiktokUsername = useSocketStore(s => s.tiktokUsername);
   const setTikTokStatus = useSocketStore(s => s.setTikTokStatus);
   const winHistory = useGameStore(s => s.winHistory);
 
@@ -444,7 +445,7 @@ export function SettingsScreen() {
             <div className="flex items-center gap-2 text-xs" style={{ fontFamily: 'var(--font-label)' }}>
               <span className={`status-dot ${tiktokConnected ? 'status-dot-online' : 'status-dot-offline'}`} />
               <span style={{ color: tiktokConnected ? 'var(--accent)' : 'var(--muted-fg)' }}>
-                {tiktokConnected ? `Connected to @${username}` : 'Disconnected'}
+                {tiktokConnected ? `Connected to @${tiktokUsername}` : 'Disconnected'}
               </span>
             </div>
 

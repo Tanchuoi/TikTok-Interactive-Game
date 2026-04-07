@@ -5,6 +5,7 @@ import { gsap } from 'gsap';
 import { GlitchText } from '../components/GlitchText.js';
 import { WinnerScene3D } from '../components/3d/WinnerScene3D.js';
 import { useGameStore } from '../stores/useGameStore.js';
+import * as api from '../lib/api.js';
 
 const AUTO_RESTART_SECONDS = 15;
 
@@ -23,7 +24,11 @@ export function LeaderboardScreen() {
       setCountdown(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          navigate('/');
+          api.resetGame().then(() => {
+            api.startGame().then(() => {
+              navigate('/race');
+            });
+          });
           return 0;
         }
         return prev - 1;
