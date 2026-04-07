@@ -53,17 +53,17 @@ export function WinnerOverlay({ winner, onClose }: WinnerOverlayProps) {
       <div ref={contentRef} className="text-center">
         {/* Winner flag */}
         <div
-          className="text-8xl mb-4"
+          className="flex justify-center mb-4"
           style={{
             filter: `drop-shadow(0 0 30px ${winner.color}80)`,
           }}
         >
-          <img src={winner.flagImage} alt={winner.name} className="h-32 object-cover mx-auto rounded" />
+          <img src={winner.flagImage} alt={winner.name} className="h-32 object-cover rounded" />
         </div>
 
         {/* Winner text */}
-        <GlitchText text="🏆 WINNER!" as="h1" className="text-5xl md:text-7xl mb-4" >
-          <span style={{ color: winner.color }}>🏆 WINNER!</span>
+        <GlitchText text="WINNER!" as="h1" className="text-5xl md:text-7xl mb-4" >
+          <span style={{ color: winner.color }}>WINNER!</span>
         </GlitchText>
 
         {/* Country name */}

@@ -4,55 +4,59 @@ import { Text, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Team } from '../../types/index.js';
 
-// ─── Trophy Cup ───
-function TrophyCup() {
+// ─── Medal ───
+function Medal({ position, color, materialParams, scale = 1 }: { position: [number, number, number], color: string, materialParams: any, scale?: number }) {
   const groupRef = useRef<THREE.Group>(null);
+  const startY = position[1];
 
   useFrame((_state) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y = _state.clock.elapsedTime * 0.5;
-      groupRef.current.position.y = Math.sin(_state.clock.elapsedTime * 1.5) * 0.1;
+      groupRef.current.rotation.y = _state.clock.elapsedTime * 1.5;
+      groupRef.current.position.y = startY + Math.sin(_state.clock.elapsedTime * 3 + position[0]) * 0.1;
     }
   });
 
   return (
-    <group ref={groupRef} position={[0, 2.2, 0]}>
-      {/* Cup body - lathe geometry */}
-      <mesh>
-        <latheGeometry args={[
-          [
-            new THREE.Vector2(0.0, -0.6),
-            new THREE.Vector2(0.3, -0.5),
-            new THREE.Vector2(0.15, -0.2),
-            new THREE.Vector2(0.08, 0.0),
-            new THREE.Vector2(0.08, 0.1),
-            new THREE.Vector2(0.3, 0.15),
-            new THREE.Vector2(0.5, 0.35),
-            new THREE.Vector2(0.55, 0.6),
-            new THREE.Vector2(0.5, 0.8),
-            new THREE.Vector2(0.4, 0.9),
-          ],
-          32,
-        ]} />
-        <meshStandardMaterial
-          color="#ffd700"
-          metalness={0.95}
-          roughness={0.05}
-          envMapIntensity={2}
-        />
-      </mesh>
+    <group ref={groupRef} position={position} scale={scale}>
+      <group rotation={[Math.PI / 2, 0, 0]}>
+        <mesh>
+          <cylinderGeometry args={[0.3, 0.3, 0.06, 32]} />
+          <meshStandardMaterial color={color} {...materialParams} />
+        </mesh>
+        <mesh position={[0, 0.035, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.2, 0.25, 32]} />
+          <meshStandardMaterial color="#ffffff" transparent opacity={0.3} {...materialParams} />
+        </mesh>
+        <mesh position={[0, 0.04, 0]}>
+          <octahedronGeometry args={[0.12, 0]} />
+          <meshStandardMaterial color="#ffffff" emissive={color} emissiveIntensity={0.5} metalness={1} roughness={0} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
 
-      {/* Star on top */}
-      <mesh position={[0, 1.1, 0]} rotation={[0, 0, 0]}>
-        <octahedronGeometry args={[0.15, 0]} />
-        <meshStandardMaterial
-          color="#ffffff"
-          emissive="#ffdd00"
-          emissiveIntensity={3}
-          metalness={0.9}
-          roughness={0.1}
+function Medals() {
+  const heights = [2.0, 1.4, 1.0];
+  const xPositions = [0, -1.5, 1.5];
+  // 1: Gold, 2: Silver, 3: Bronze
+  const medalsData = [
+    { color: '#ffd700', metalness: 1, roughness: 0.1 },
+    { color: '#c0c0c0', metalness: 1, roughness: 0.2 },
+    { color: '#cd7f32', metalness: 0.8, roughness: 0.3 },
+  ];
+
+  return (
+    <group>
+      {medalsData.map((data, i) => (
+        <Medal
+          key={i}
+          position={[xPositions[i], -1.5 + heights[i] + 0.6, 0]}
+          color={data.color}
+          materialParams={{ metalness: data.metalness, roughness: data.roughness, envMapIntensity: 2 }}
+          scale={i === 0 ? 1.2 : 0.9}
         />
-      </mesh>
+      ))}
     </group>
   );
 }
@@ -207,9 +211,9 @@ function FlutteringFlag({ url, position, scale, isWinner }: { url: string, posit
 function FlagsBackground({ teams }: { teams: Team[] }) {
   const top3 = teams.slice(0, 3);
   const positions: [number, number, number][] = [
-    [0, 3.8, -3],       // Winner: high center back
-    [-3.2, 2.5, -4],   // 2nd: middle left back
-    [3.2, 2.2, -4],    // 3rd: lower right back
+    [0, 2.5, -3],       // Winner: high center back
+    [-3.0, 1.5, -3.5],  // 2nd: middle left back
+    [3.0, 1.3, -3.5],   // 3rd: lower right back
   ];
   const scales = [1.8, 1.2, 1.0];
 
@@ -260,7 +264,7 @@ export function WinnerScene3D({ standings }: WinnerScene3DProps) {
             color="#ffffff"
           />
 
-          <TrophyCup />
+          <Medals />
           <FlagsBackground teams={standings} />
           <Confetti />
           <Podium teams={standings} />
