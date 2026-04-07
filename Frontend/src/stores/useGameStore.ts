@@ -66,6 +66,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const existing = donors.find(d => d.userName === event.giftData.userName);
       if (existing) {
         existing.giftCount += event.giftData.steps;
+        if (event.giftData.userAvatar) {
+           existing.userAvatar = event.giftData.userAvatar;
+        }
       } else {
         donors.push({
           userId: event.giftData.userName,
@@ -96,6 +99,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Let's add them up, but if someone spams, it might inflate if it's total.
       // Usually, it's an increment per batch.
       existing.likeCount += count;
+      if (event.userAvatar) {
+         existing.userAvatar = event.userAvatar;
+      }
     } else {
       likers.push({
         userId: event.userId,

@@ -39,10 +39,10 @@ export function RaceScreen() {
   const sortedTeams = [...teams].sort((a, b) => b.position - a.position);
 
   // Win counts for sidebar
-  const winCounts: Record<string, { name: string; flag: string; wins: number }> = {};
+  const winCounts: Record<string, { name: string; flag: string; flagImage?: string; wins: number }> = {};
   winHistory.forEach(w => {
     if (!winCounts[w.teamId]) {
-      winCounts[w.teamId] = { name: w.teamName, flag: w.flag, wins: 0 };
+      winCounts[w.teamId] = { name: w.teamName, flag: w.flag, flagImage: w.flagImage, wins: 0 };
     }
     winCounts[w.teamId].wins++;
   });
@@ -194,7 +194,11 @@ export function RaceScreen() {
                     <span className="w-3 text-center">
                       {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`}
                     </span>
-                    <span>{data.flag}</span>
+                    {data.flagImage ? (
+                      <img src={data.flagImage} alt="" className="w-5 h-3 object-cover rounded-sm" />
+                    ) : (
+                      <span>{data.flag}</span>
+                    )}
                     <span className="flex-1 uppercase font-bold" style={{ fontFamily: 'var(--font-heading)' }}>
                       {data.name}
                     </span>
@@ -234,12 +238,14 @@ export function RaceScreen() {
                       {i + 1}
                     </span>
                     <span>{donor.teamFlag}</span>
-                    {donor.userAvatar && (
+                    {donor.userAvatar ? (
                       <img
                         src={donor.userAvatar}
                         alt="Avatar"
                         className="w-5 h-5 rounded-full object-cover shrink-0"
                       />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full bg-[var(--border)] shrink-0 flex items-center justify-center text-[10px]">👤</div>
                     )}
                     <span className="flex-1 truncate" style={{ color: 'var(--fg)' }}>
                       {donor.userName}
@@ -282,12 +288,14 @@ export function RaceScreen() {
                     <span className="font-bold w-4 text-center" style={{ color: 'var(--muted-fg)' }}>
                       {i + 1}
                     </span>
-                    {liker.userAvatar && (
+                    {liker.userAvatar ? (
                       <img
                         src={liker.userAvatar}
                         alt="Avatar"
                         className="w-5 h-5 rounded-full object-cover shrink-0"
                       />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full bg-[var(--border)] shrink-0 flex items-center justify-center text-[10px]">👤</div>
                     )}
                     <span className="flex-1 truncate" style={{ color: 'var(--fg)' }}>
                       {liker.userName}

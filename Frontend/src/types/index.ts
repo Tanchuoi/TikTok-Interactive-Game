@@ -59,6 +59,7 @@ export interface WinRecord {
   teamId: string;
   teamName: string;
   flag: string;
+  flagImage?: string;
   color: string;
   timestamp: number;
 }

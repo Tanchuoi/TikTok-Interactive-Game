@@ -39,6 +39,7 @@ export interface WinRecord {
   teamId: string;
   teamName: string;
   flag: string;
+  flagImage?: string;
   color: string;
   timestamp: number;
 }
@@ -163,6 +164,7 @@ class GameManager extends EventEmitter {
         teamId: team.id,
         teamName: team.name,
         flag: team.flag,
+        flagImage: team.flagImage,
         color: team.color,
         timestamp: Date.now(),
       });
@@ -215,7 +217,7 @@ class GameManager extends EventEmitter {
       teams: Array.from(this.teams.values()).map(t => ({ ...t })),
       trackLength: this.trackLength,
       winner: this.winner ? { ...this.winner } : null,
-      winHistory: [...this.winHistory],
+      winHistory: this.winHistory.map(w => ({...w})),
     };
   }
 

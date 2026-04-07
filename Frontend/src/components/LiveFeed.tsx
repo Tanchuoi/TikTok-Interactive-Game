@@ -43,7 +43,7 @@ export function LiveFeed({ events }: LiveFeedProps) {
       </h3>
       <div
         ref={containerRef}
-        className="flex flex-col gap-1 max-h-[240px] overflow-y-auto"
+        className="flex flex-col gap-1 flex-1 min-h-0 overflow-y-auto"
         style={{ scrollbarWidth: 'thin' }}
       >
         {events.map((event, i) => (

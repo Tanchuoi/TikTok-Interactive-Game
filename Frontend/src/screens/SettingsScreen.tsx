@@ -162,13 +162,31 @@ export function SettingsScreen() {
   const [username, setUsername] = useState('');
   const [connecting, setConnecting] = useState(false);
   const [connectionError, setConnectionError] = useState('');
-  const [selectedCountries, setSelectedCountries] = useState<string[]>(DEFAULT_SELECTED_IDS);
+  const [selectedCountries, setSelectedCountries] = useState<string[]>(() => {
+    const saved = localStorage.getItem('tiktok_game_countries');
+    if (saved) {
+      try { return JSON.parse(saved); } catch(e){}
+    }
+    return DEFAULT_SELECTED_IDS;
+  });
   const [availableGifts, setAvailableGifts] = useState<any[]>(TIKTOK_GIFTS);
   const [giftMapping, setGiftMapping] = useState<Record<string, number>>({});
-  const [trackLength, setTrackLength] = useState(50);
+  const [trackLength, setTrackLength] = useState(() => {
+    const saved = localStorage.getItem('tiktok_game_track_length');
+    return saved ? parseInt(saved, 10) : 50;
+  });
   const [isStarting, setIsStarting] = useState(false);
+  
   // ─── Initialize default gift mapping ───
   useEffect(() => {
+    const savedMapping = localStorage.getItem('tiktok_game_gift_mapping');
+    if (savedMapping) {
+      try {
+        setGiftMapping(JSON.parse(savedMapping));
+        return;
+      } catch (e) {}
+    }
+
     const mapping: Record<string, number> = {};
     DEFAULT_SELECTED_IDS.forEach((id, i) => {
       if (TIKTOK_GIFTS[i]) {
@@ -177,6 +195,21 @@ export function SettingsScreen() {
     });
     setGiftMapping(mapping);
   }, []);
+
+  // Save changes to localStorage
+  useEffect(() => {
+    if (Object.keys(giftMapping).length > 0) {
+      localStorage.setItem('tiktok_game_gift_mapping', JSON.stringify(giftMapping));
+    }
+  }, [giftMapping]);
+
+  useEffect(() => {
+    localStorage.setItem('tiktok_game_countries', JSON.stringify(selectedCountries));
+  }, [selectedCountries]);
+
+  useEffect(() => {
+    localStorage.setItem('tiktok_game_track_length', trackLength.toString());
+  }, [trackLength]);
 
   // ─── Fetch gifts when TikTok connects ───
   useEffect(() => {

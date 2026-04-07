@@ -38,7 +38,8 @@ export function WinnerOverlay({ winner, onClose }: WinnerOverlayProps) {
     }, 3500);
 
     return () => clearTimeout(timer);
-  }, [navigate, onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate]);
 
   return (
     <div
@@ -57,7 +58,7 @@ export function WinnerOverlay({ winner, onClose }: WinnerOverlayProps) {
             filter: `drop-shadow(0 0 30px ${winner.color}80)`,
           }}
         >
-          {winner.flag}
+          <img src={winner.flagImage} alt={winner.name} className="h-32 object-cover mx-auto rounded" />
         </div>
 
         {/* Winner text */}
