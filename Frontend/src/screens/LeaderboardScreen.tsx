@@ -129,9 +129,10 @@ export function LeaderboardScreen() {
               return (
                 <div
                   key={team.id}
-                  className="cyber-card cyber-chamfer-sm p-3"
+                  className="cyber-card cyber-chamfer-sm"
                   style={{
-                    borderLeftWidth: '3px',
+                    padding: '0.75rem 1rem',
+                    borderLeftWidth: '4px',
                     borderLeftStyle: 'solid',
                     borderLeftColor: colors[i],
                   }}
@@ -178,7 +179,7 @@ export function LeaderboardScreen() {
 
           {/* Remaining standings */}
           {rest.length > 0 && (
-            <div ref={standingsRef} className="cyber-card cyber-chamfer-sm p-3 mb-4">
+            <div ref={standingsRef} className="cyber-card cyber-chamfer-sm mb-4" style={{ padding: '0.75rem 1rem' }}>
               <h3
                 className="text-[10px] uppercase tracking-widest mb-2"
                 style={{ fontFamily: 'var(--font-label)', color: 'var(--accent-tertiary)' }}
@@ -214,40 +215,49 @@ export function LeaderboardScreen() {
             </div>
           )}
 
-          {/* Countdown + Buttons */}
-          <div className="mt-auto text-center">
-            <p
-              className="text-xs uppercase tracking-widest mb-3"
-              style={{ fontFamily: 'var(--font-label)', color: 'var(--muted-fg)' }}
+          {/* Countdown  */}
+          <div className="mt-auto flex flex-col items-center justify-center pt-2">
+            <div 
+              className="relative flex items-center justify-center w-full cyber-chamfer-sm"
+              style={{
+                background: 'rgba(0, 0, 0, 0.5)',
+                border: `1px solid ${countdown <= 5 ? 'var(--destructive)' : 'var(--accent)'}`,
+                boxShadow: countdown <= 5 ? '0 0 20px rgba(255,51,102,0.2)' : '0 0 20px rgba(0,255,136,0.1)',
+                padding: '16px 0',
+                overflow: 'hidden'
+              }}
             >
-              Next race in:{' '}
-              <span
-                className="text-xl font-bold"
+              {/* Progress bar background (depleting) */}
+              <div 
+                className="absolute left-0 top-0 bottom-0 transition-all duration-1000 ease-linear"
                 style={{
-                  fontFamily: 'var(--font-heading)',
-                  color: countdown <= 5 ? 'var(--destructive)' : 'var(--accent)',
-                  textShadow: countdown <= 5 ? '0 0 10px rgba(255, 51, 102, 0.5)' : '0 0 10px rgba(0, 255, 136, 0.3)',
+                  width: `${(countdown / AUTO_RESTART_SECONDS) * 100}%`,
+                  background: countdown <= 5 ? 'rgba(255,51,102,0.15)' : 'rgba(0,255,136,0.1)',
+                  borderRight: `2px solid ${countdown <= 5 ? 'var(--destructive)' : 'var(--accent)'}`
                 }}
-              >
-                {countdown}
-              </span>
-              {' '}seconds
-            </p>
-
-            <div className="flex gap-3 justify-center">
-              <button
-                className="cyber-btn-glitch cyber-chamfer text-sm"
-                onClick={() => navigate('/')}
-                style={{ fontFamily: 'var(--font-heading)' }}
-              >
-                ⚡ Play Again
-              </button>
-              <button
-                className="cyber-btn cyber-chamfer-sm text-xs"
-                onClick={() => navigate('/')}
-              >
-                ← Settings
-              </button>
+              />
+              <div className="relative flex items-end gap-2 z-10 text-center">
+                <span 
+                  className={`text-5xl font-bold leading-none ${countdown <= 5 ? 'rgb-shift' : ''}`}
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    color: countdown <= 5 ? 'var(--destructive)' : 'var(--accent)',
+                    textShadow: countdown <= 5 ? '0 0 20px rgba(255, 51, 102, 0.8)' : '0 0 20px rgba(0, 255, 136, 0.8)',
+                  }}
+                >
+                  {countdown.toString().padStart(2, '0')}
+                </span>
+                <span className="text-xs mb-1 font-bold" style={{ color: countdown <= 5 ? 'var(--destructive)' : 'var(--accent)', opacity: 0.6, fontFamily: 'var(--font-label)' }}>
+                  SEC
+                </span>
+              </div>
+            </div>
+            <div className="h-6 mt-2 flex items-center justify-center">
+              {countdown <= 5 && (
+                <p className="text-[10px] uppercase animate-pulse" style={{ color: 'var(--destructive)', fontFamily: 'var(--font-label)' }}>
+                  {'>>'} INIT NEXT RACE {'<<'}
+                </p>
+              )}
             </div>
           </div>
         </div>

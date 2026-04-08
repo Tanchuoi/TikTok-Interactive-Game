@@ -107,7 +107,7 @@ export function RaceScreen() {
           className="cyber-btn cyber-btn-ghost cyber-chamfer-sm text-xs"
           onClick={handleReset}
         >
-           Settings
+            ‎ 
         </button>
       </div>
 
