@@ -56,6 +56,10 @@ gameManager.on('stateChange', (state) => {
   io.emit('game:stateChange', state);
 });
 
+gameManager.on('clearInteractiveData', () => {
+  io.emit('game:clearInteractiveData');
+});
+
 // ─── TikTok → GameManager + Socket.IO bridge ───
 tiktokService.on('gift', (giftData) => {
   gameManager.processGift(giftData);
@@ -83,6 +87,7 @@ tiktokService.on('viewers', (data) => {
 
 tiktokService.on('disconnected', () => {
   io.emit('tiktok:status', { connected: false, username: '' });
+  gameManager.clearDonors();
 });
 
 // ─── Start Server ───

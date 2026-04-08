@@ -41,9 +41,9 @@ function Medals() {
   const xPositions = [0, -1.5, 1.5];
   // 1: Gold, 2: Silver, 3: Bronze
   const medalsData = [
-    { color: '#ffd700', metalness: 1, roughness: 0.1 },
-    { color: '#c0c0c0', metalness: 1, roughness: 0.2 },
-    { color: '#cd7f32', metalness: 0.8, roughness: 0.3 },
+    { color: '#ffd700', metalness: 0.6, roughness: 0.3 },
+    { color: '#c0c0c0', metalness: 0.6, roughness: 0.3 },
+    { color: '#cd7f32', metalness: 0.6, roughness: 0.3 },
   ];
 
   return (

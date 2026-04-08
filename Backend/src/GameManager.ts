@@ -73,16 +73,18 @@ class GameManager extends EventEmitter {
   }
 
   setupGame(config: GameSetupConfig): void {
+    const existingTeams = new Map(this.teams);
     this.teams.clear();
     this.giftToTeam.clear();
     this.winner = null;
     this.trackLength = config.trackLength;
 
     for (const tc of config.teams) {
+      const existing = existingTeams.get(tc.id);
       this.teams.set(tc.id, {
         ...tc,
         position: 0,
-        donors: [],
+        donors: existing ? existing.donors : [],
       });
       this.giftToTeam.set(tc.giftId, tc.id);
     }
@@ -99,7 +101,6 @@ class GameManager extends EventEmitter {
     // Reset positions for a new race
     for (const team of this.teams.values()) {
       team.position = 0;
-      team.donors = [];
     }
     this.winner = null;
     this.status = 'racing';
@@ -189,7 +190,6 @@ class GameManager extends EventEmitter {
 
     for (const team of this.teams.values()) {
       team.position = 0;
-      team.donors = [];
     }
     this.winner = null;
     this.status = 'configuring';
@@ -208,6 +208,14 @@ class GameManager extends EventEmitter {
 
   clearWinHistory(): void {
     this.winHistory = [];
+    this.emitStateChange();
+  }
+
+  clearDonors(): void {
+    for (const team of this.teams.values()) {
+      team.donors = [];
+    }
+    this.emit('clearInteractiveData');
     this.emitStateChange();
   }
 

@@ -29,6 +29,7 @@ interface GameStore {
   removeToast: (id: string) => void;
   clearToasts: () => void;
   reset: () => void;
+  clearInteractiveData: () => void;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -153,6 +154,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     standings: [],
     toasts: [],
     recentGifts: [],
+  }),
+
+  clearInteractiveData: () => set({
     topLikers: [],
+    recentGifts: [], // Also optionally clear recent gifts when interactive data clears
   }),
 }));

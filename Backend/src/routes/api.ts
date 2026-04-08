@@ -95,6 +95,11 @@ router.delete('/game/leaderboard', (_req: Request, res: Response) => {
   res.json({ success: true });
 });
 
+router.post('/game/clear-interactive-data', (_req: Request, res: Response) => {
+  gameManager.clearDonors();
+  res.json({ success: true, state: gameManager.getState() });
+});
+
 // ═══════════════════════════════════════════
 // Mock Mode
 // ═══════════════════════════════════════════

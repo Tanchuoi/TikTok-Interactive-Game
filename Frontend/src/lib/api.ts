@@ -76,6 +76,13 @@ export function clearLeaderboard() {
   return request<{ success: boolean }>('/game/leaderboard', { method: 'DELETE' });
 }
 
+export function clearInteractiveData() {
+  return request<{ success: boolean; state?: GameState; error?: string }>(
+    '/game/clear-interactive-data',
+    { method: 'POST' }
+  );
+}
+
 // ─── Mock Mode ───
 export function startMockGifts(intervalMs = 600) {
   return request<{ success: boolean; error?: string }>(

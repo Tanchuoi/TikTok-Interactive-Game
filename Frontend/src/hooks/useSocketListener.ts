@@ -98,11 +98,16 @@ export function useSocketListener() {
       useSocketStore.getState().setViewerCount(data.viewerCount);
     };
 
+    const handleClearInteractiveData = () => {
+      useGameStore.getState().clearInteractiveData();
+    };
+
     // ─── Attach listeners ───
     socket.on('init', handleInit);
     socket.on('game:stateChange', handleStateChange);
     socket.on('game:move', handleMove);
     socket.on('game:winner', handleWinner);
+    socket.on('game:clearInteractiveData', handleClearInteractiveData);
     socket.on('tiktok:status', handleTikTokStatus);
     socket.on('tiktok:follow', handleFollow);
     socket.on('tiktok:share', handleShare);
@@ -114,6 +119,7 @@ export function useSocketListener() {
       socket.off('game:stateChange', handleStateChange);
       socket.off('game:move', handleMove);
       socket.off('game:winner', handleWinner);
+      socket.off('game:clearInteractiveData', handleClearInteractiveData);
       socket.off('tiktok:status', handleTikTokStatus);
       socket.off('tiktok:follow', handleFollow);
       socket.off('tiktok:share', handleShare);

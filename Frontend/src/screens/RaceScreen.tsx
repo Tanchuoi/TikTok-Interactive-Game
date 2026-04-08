@@ -8,6 +8,7 @@ import { WinnerOverlay } from '../components/WinnerOverlay.js';
 import { useGameStore } from '../stores/useGameStore.js';
 import { useSocketStore } from '../stores/useSocketStore.js';
 import * as api from '../lib/api.js';
+import winSound from '../assets/sound/win.mp3';
 
 export function RaceScreen() {
   const navigate = useNavigate();
@@ -32,6 +33,8 @@ export function RaceScreen() {
   useEffect(() => {
     if (status === 'finished' && winner) {
       setShowWinner(true);
+      const audio = new Audio(winSound);
+      audio.play().catch(e => console.warn('Audio play failed:', e));
     }
   }, [status, winner]);
 
@@ -50,7 +53,7 @@ export function RaceScreen() {
 
   // Top donors across all teams
   const allDonors = teams
-    .flatMap(t => t.donors.map(d => ({ ...d, teamName: t.name, teamFlag: t.flag })))
+    .flatMap(t => t.donors.map(d => ({ ...d, teamName: t.name, teamFlag: t.flag, teamFlagImage: t.flagImage })))
     .sort((a, b) => b.giftCount - a.giftCount)
     .slice(0, 5);
 
@@ -237,7 +240,11 @@ export function RaceScreen() {
                     <span className="font-bold w-4 text-center" style={{ color: 'var(--muted-fg)' }}>
                       {i + 1}
                     </span>
-                    <span>{donor.teamFlag}</span>
+                    {donor.teamFlagImage ? (
+                      <img src={donor.teamFlagImage} alt={donor.teamFlag} className="w-5 h-3 object-cover rounded-sm shrink-0" />
+                    ) : (
+                      <span>{donor.teamFlag}</span>
+                    )}
                     {donor.userAvatar ? (
                       <img
                         src={donor.userAvatar}

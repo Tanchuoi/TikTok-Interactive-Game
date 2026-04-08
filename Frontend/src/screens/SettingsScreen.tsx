@@ -457,7 +457,7 @@ export function SettingsScreen() {
           </div>
 
           {/* RACE CONFIGURATION */}
-          <div className="cyber-card cyber-chamfer p-6 sm:p-8">
+          <div className="cyber-card cyber-chamfer" style={{ padding: '1.25rem' }}>
             <h2
               className="text-sm uppercase tracking-widest mb-4"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--accent)' }}
@@ -599,7 +599,7 @@ export function SettingsScreen() {
 
         {/* ─── Right Column: Leaderboard ─── */}
         <div className="flex flex-col gap-6">
-          <div className="cyber-card-holographic cyber-chamfer p-6 sm:p-8">
+          <div className="cyber-card-holographic cyber-chamfer" style={{ padding: '1.25rem' }}>
             <h2
               className="text-sm uppercase tracking-widest mb-4"
               style={{ fontFamily: 'var(--font-label)', color: 'var(--accent)' }}
@@ -652,20 +652,31 @@ export function SettingsScreen() {
           </div>
 
           {/* Connection info panel */}
-          <div className="cyber-card cyber-chamfer-sm p-6 sm:p-8">
-            <h3
-              className="text-xs uppercase tracking-widest mb-2"
-              style={{ fontFamily: 'var(--font-label)', color: 'var(--accent-tertiary)' }}
-            >
-              {'>'} System Info
-            </h3>
-            <div className="flex flex-col gap-1 text-xs" style={{ fontFamily: 'var(--font-label)', color: 'var(--muted-fg)' }}>
-              <div>Nations: <span style={{ color: 'var(--fg)' }}>{selectedCountries.length}</span></div>
-              <div>Track: <span style={{ color: 'var(--fg)' }}>{trackLength} steps</span></div>
-              <div>TikTok: <span style={{ color: tiktokConnected ? 'var(--accent)' : 'var(--destructive)' }}>
-                {tiktokConnected ? 'Online' : 'Offline'}
-              </span></div>
+          <div className="cyber-card cyber-chamfer-sm flex flex-col gap-4" style={{ padding: '1.25rem' }}>
+            <div>
+              <h3
+                className="text-xs uppercase tracking-widest mb-2"
+                style={{ fontFamily: 'var(--font-label)', color: 'var(--accent-tertiary)' }}
+              >
+                {'>'} System Info
+              </h3>
+              <div className="flex flex-col gap-1 text-xs" style={{ fontFamily: 'var(--font-label)', color: 'var(--muted-fg)' }}>
+                <div>Nations: <span style={{ color: 'var(--fg)' }}>{selectedCountries.length}</span></div>
+                <div>Track: <span style={{ color: 'var(--fg)' }}>{trackLength} steps</span></div>
+                <div>TikTok: <span style={{ color: tiktokConnected ? 'var(--accent)' : 'var(--destructive)' }}>
+                  {tiktokConnected ? 'Online' : 'Offline'}
+                </span></div>
+              </div>
             </div>
+            <button
+              className="cyber-btn cyber-btn-secondary cyber-chamfer-sm w-full text-xs"
+              onClick={async () => {
+                useGameStore.getState().clearInteractiveData();
+                await api.clearInteractiveData();
+              }}
+            >
+              Reset Donors & Likes
+            </button>
           </div>
         </div>
       </div>
