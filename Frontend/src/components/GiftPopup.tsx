@@ -1,12 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { useGameStore } from '../stores/useGameStore.js';
 import followSound from '../assets/sound/donate.mp3';
+import { speak } from '../lib/tts.js';
 
 const TYPE_ICONS: Record<string, string> = {
   gift: '🎁',
   follow: '👤',
   share: '🔗',
   like: '❤️',
+  chat: '💬',
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -14,6 +16,7 @@ const TYPE_COLORS: Record<string, string> = {
   follow: 'var(--accent-tertiary)',
   share: 'var(--accent-secondary)',
   like: 'var(--destructive)',
+  chat: '#ffffff',
 };
 
 export function GiftPopup() {
@@ -28,15 +31,19 @@ export function GiftPopup() {
   useEffect(() => {
     if (toasts.length === 0) return;
 
-    // Check for new follow toasts
+    // Check for new follow or chat toasts
     const latest = toasts[0];
-    if (latest.type === 'follow' && !processedToasts.current.has(latest.id)) {
+    if (!processedToasts.current.has(latest.id)) {
       processedToasts.current.add(latest.id);
       
-      // Play follow sound
-      if (soundRef.current) {
-        soundRef.current.currentTime = 0;
-        soundRef.current.play().catch(e => console.error("Follow sound failed", e));
+      if (latest.type === 'follow') {
+        // Play follow sound
+        if (soundRef.current) {
+          soundRef.current.currentTime = 0;
+          soundRef.current.play().catch(e => console.error("Follow sound failed", e));
+        }
+      } else if (latest.type === 'chat') {
+        speak(latest.message);
       }
     }
 

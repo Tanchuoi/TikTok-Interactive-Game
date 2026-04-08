@@ -94,6 +94,17 @@ export function useSocketListener() {
       });
     };
 
+    const handleChat = (data: TikTokUserEvent) => {
+      addToast({
+        id: makeToastId(),
+        type: 'chat',
+        userName: data.userName,
+        userAvatar: data.userAvatar,
+        message: data.comment || '',
+        timestamp: Date.now(),
+      });
+    };
+
     const handleViewers = (data: { viewerCount: number }) => {
       useSocketStore.getState().setViewerCount(data.viewerCount);
     };
@@ -112,6 +123,7 @@ export function useSocketListener() {
     socket.on('tiktok:follow', handleFollow);
     socket.on('tiktok:share', handleShare);
     socket.on('tiktok:like', handleLike);
+    socket.on('tiktok:chat', handleChat);
     socket.on('tiktok:viewers', handleViewers);
 
     return () => {
@@ -124,6 +136,7 @@ export function useSocketListener() {
       socket.off('tiktok:follow', handleFollow);
       socket.off('tiktok:share', handleShare);
       socket.off('tiktok:like', handleLike);
+      socket.off('tiktok:chat', handleChat);
       socket.off('tiktok:viewers', handleViewers);
     };
   }, [socket, setFullState, moveTeam, setWinner, addToast, setTikTokStatus]);

@@ -85,6 +85,10 @@ tiktokService.on('viewers', (data) => {
   io.emit('tiktok:viewers', data);
 });
 
+tiktokService.on('chat', (data) => {
+  io.emit('tiktok:chat', data);
+});
+
 tiktokService.on('disconnected', () => {
   io.emit('tiktok:status', { connected: false, username: '' });
 });

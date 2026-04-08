@@ -6,6 +6,7 @@ import { FlagRunner3D } from './FlagRunner3D';
 import { FinishLine3D } from './FinishLine3D';
 import { StartLine3D } from './StartLine3D';
 import { FruitProjectile3D } from './FruitProjectile3D';
+import { NeonShatterParticles } from './NeonShatterParticles';
 import { useGameStore } from '../../stores/useGameStore';
 import type { Team, MoveEvent } from '../../types/index';
 
@@ -47,6 +48,12 @@ interface ActiveFruit {
   steps: number;
 }
 
+interface ActiveParticle {
+  id: string;
+  position: [number, number, number];
+  color: string;
+}
+
 export function RaceScene3D({ teams, trackLength, winnerId }: RaceScene3DProps) {
   const recentGifts = useGameStore(s => s.recentGifts);
   const laneCount = teams.length;
@@ -59,6 +66,7 @@ export function RaceScene3D({ teams, trackLength, winnerId }: RaceScene3DProps) 
   // Visual positions (mapping teamId to position value)
   const [visualPositions, setVisualPositions] = useState<Record<string, number>>({});
   const [activeFruits, setActiveFruits] = useState<ActiveFruit[]>([]);
+  const [activeParticles, setActiveParticles] = useState<ActiveParticle[]>([]);
   const processedGifts = useRef<Set<MoveEvent>>(new Set());
   const dingAudio = useRef<HTMLAudioElement | null>(null);
 
@@ -139,6 +147,17 @@ export function RaceScene3D({ teams, trackLength, winnerId }: RaceScene3DProps) 
       return { ...prev, [teamId]: nextPos };
     });
 
+    // Spawn shatter particles
+    const fruit = activeFruits.find(f => f.id === fruitId);
+    const team = teams.find(t => t.id === teamId);
+    if (fruit && team) {
+      setActiveParticles(prev => [...prev, {
+        id: Math.random().toString(36).substr(2, 9),
+        position: fruit.targetPosition,
+        color: team.color,
+      }]);
+    }
+
     setActiveFruits(prev => prev.filter(f => f.id !== fruitId));
   };
 
@@ -215,6 +234,16 @@ export function RaceScene3D({ teams, trackLength, winnerId }: RaceScene3DProps) 
                 onHit={() => handleFruitHit(fruit.id, fruit.teamId, fruit.steps)}
                 teamId={fruit.teamId}
                 targetPositionValue={fruit.steps}
+              />
+            ))}
+
+            {/* Neon Shatter Particles */}
+            {activeParticles.map(particle => (
+              <NeonShatterParticles
+                key={particle.id}
+                position={particle.position}
+                color={particle.color}
+                onComplete={() => setActiveParticles(prev => prev.filter(p => p.id !== particle.id))}
               />
             ))}
 

@@ -1,5 +1,5 @@
-// ─── MockService.ts ─── Fake gift generator for testing ───
 import { gameManager, type GiftData } from './GameManager.js';
+import { tiktokService } from './TikTokService.js';
 
 const FAKE_USERS = [
   { userId: 'mock_alice', userName: 'Alice_Gamer', userAvatar: '' },
@@ -14,6 +14,17 @@ const FAKE_USERS = [
   { userId: 'mock_julia', userName: 'Julia_Fan', userAvatar: '' },
   { userId: 'mock_kevin', userName: 'Kevin_Hype', userAvatar: '' },
   { userId: 'mock_luna', userName: 'Luna_Moon', userAvatar: '' },
+];
+
+const FAKE_COMMENTS = [
+  'Wow great stream!',
+  'Tiến lên đội Việt Nam ơi ❤️',
+  'Amazing game',
+  'สู้ๆ นะพวกเรา!', // Thai
+  '이거 너무 재밌어요 ㅋㅋ', // Korean
+  'Trời ơi, thua mất rồi',
+  'POGGERS',
+  'Gửi quà đi anh em',
 ];
 
 class MockService {
@@ -63,6 +74,16 @@ class MockService {
       };
 
       gameManager.processGift(fakeGift);
+
+      // 10% chance to mock a chat message
+      if (Math.random() > 0.9) {
+        tiktokService.emit('chat', {
+          userId: randomUser.userId,
+          userName: randomUser.userName,
+          userAvatar: randomUser.userAvatar,
+          comment: FAKE_COMMENTS[Math.floor(Math.random() * FAKE_COMMENTS.length)],
+        });
+      }
     }, intervalMs);
 
     console.log(`[Mock] Started generating fake gifts every ${intervalMs}ms`);

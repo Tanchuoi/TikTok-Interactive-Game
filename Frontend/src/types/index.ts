@@ -79,11 +79,12 @@ export interface TikTokUserEvent {
   userName: string;
   userAvatar: string;
   likeCount?: number;
+  comment?: string;
 }
 
 export interface ToastEvent {
   id: string;
-  type: 'gift' | 'follow' | 'share' | 'like';
+  type: 'gift' | 'follow' | 'share' | 'like' | 'chat';
   userName: string;
   userAvatar: string;
   message: string;
