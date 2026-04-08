@@ -157,18 +157,17 @@ export function LeaderboardScreen() {
                       {pct}%
                     </span>
                   </div>
-                  <p
-                    className="text-[10px] mb-1"
-                    style={{ fontFamily: 'var(--font-label)', color: 'var(--muted-fg)' }}
-                  >
-                    {team.position}/{trackLength} steps
-                  </p>
                   {topDonors.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1 mt-1">
                       {topDonors.map(d => (
-                        <span key={d.userId} className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: 'var(--bg)', color: 'var(--accent)' }}>
-                          {d.userName} ({d.giftCount})
-                        </span>
+                        <div key={d.userId} className="flex items-center gap-1.5 text-[10px] px-1.5 py-1 rounded" style={{ background: 'var(--bg)', color: 'var(--accent)' }}>
+                          {d.userAvatar ? (
+                            <img src={d.userAvatar} alt="" className="w-4 h-4 rounded-full object-cover shrink-0 border border-[var(--border)]" />
+                          ) : (
+                            <div className="w-4 h-4 rounded-full bg-[var(--border)] shrink-0 flex items-center justify-center text-[8px]">👤</div>
+                          )}
+                          <span>{d.userName} ({d.giftCount})</span>
+                        </div>
                       ))}
                     </div>
                   )}

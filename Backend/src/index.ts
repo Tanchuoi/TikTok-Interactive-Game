@@ -87,7 +87,6 @@ tiktokService.on('viewers', (data) => {
 
 tiktokService.on('disconnected', () => {
   io.emit('tiktok:status', { connected: false, username: '' });
-  gameManager.clearDonors();
 });
 
 // ─── Start Server ───
