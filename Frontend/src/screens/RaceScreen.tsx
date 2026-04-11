@@ -1,5 +1,5 @@
 // ─── Race Screen ─── Live race with 3D animated tracks ───
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RaceScene3D } from '../components/3d/RaceScene3D.js';
 import { LiveFeed } from '../components/LiveFeed.js';
@@ -21,6 +21,55 @@ export function RaceScreen() {
   const topLikers = useGameStore(s => s.topLikers);
   const [showWinner, setShowWinner] = useState(false);
   const viewerCount = useSocketStore(s => s.viewerCount);
+
+  // ─── Hotkey Donation State ───
+  const hotkeyDebounceRef = useRef<Record<string, number>>({});
+
+  // Get selected countries order from localStorage (same order as settings)
+  const selectedCountriesRef = useRef<string[]>([]);
+  useEffect(() => {
+    const saved = localStorage.getItem('tiktok_game_countries');
+    if (saved) {
+      try { selectedCountriesRef.current = JSON.parse(saved); } catch(e){}
+    }
+  }, []);
+
+  // ─── Hotkey Keyboard Listener ───
+  const handleHotkey = useCallback(async (e: KeyboardEvent) => {
+    // Ignore if typing in an input/textarea
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+    if (status !== 'racing') return;
+
+    // Map key to index: '1'->0, '2'->1, ..., '9'->8, '0'->9
+    const keyMap: Record<string, number> = {
+      '1': 0, '2': 1, '3': 2, '4': 3, '5': 4,
+      '6': 5, '7': 6, '8': 7, '9': 8, '0': 9,
+    };
+    const index = keyMap[e.key];
+    if (index === undefined) return;
+
+    const countries = selectedCountriesRef.current;
+    if (index >= countries.length) return;
+
+    const teamId = countries[index];
+
+    // Debounce: 300ms per key
+    const now = Date.now();
+    if (hotkeyDebounceRef.current[e.key] && now - hotkeyDebounceRef.current[e.key] < 300) return;
+    hotkeyDebounceRef.current[e.key] = now;
+
+    // Send manual gift
+    try {
+      await api.sendManualGift(teamId);
+    } catch (err) {
+      console.warn('[Hotkey] Failed to send manual gift:', err);
+    }
+  }, [status]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleHotkey);
+    return () => window.removeEventListener('keydown', handleHotkey);
+  }, [handleHotkey]);
 
   // Redirect if no game
   useEffect(() => {
@@ -336,6 +385,7 @@ export function RaceScreen() {
           onClose={() => setShowWinner(false)}
         />
       )}
+
     </div>
   );
 }

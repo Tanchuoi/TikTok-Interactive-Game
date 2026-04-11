@@ -83,6 +83,14 @@ export function clearInteractiveData() {
   );
 }
 
+// ─── Manual Gift (Hotkey Donation) ───
+export function sendManualGift(teamId: string) {
+  return request<{ success: boolean; userName?: string; steps?: number; error?: string }>(
+    '/game/manual-gift',
+    { method: 'POST', body: JSON.stringify({ teamId }) }
+  );
+}
+
 // ─── Mock Mode ───
 export function startMockGifts(intervalMs = 600) {
   return request<{ success: boolean; error?: string }>(

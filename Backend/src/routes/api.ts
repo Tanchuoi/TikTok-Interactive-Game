@@ -100,6 +100,59 @@ router.post('/game/clear-interactive-data', (_req: Request, res: Response) => {
   res.json({ success: true, state: gameManager.getState() });
 });
 
+// ─── Manual Gift (Hotkey Donation) ───
+const MANUAL_FAKE_NAMES = [
+  'Nguyễn Văn An', 'Trần Thị Mai', 'Lê Hoàng Nam', 'Phạm Minh Anh',
+  'Hoàng Thị Lan', 'Vũ Đức Huy', 'Đặng Quốc Bảo', 'Bùi Thu Hà',
+  'Đỗ Thanh Tùng', 'Ngô Thị Hương', 'Dương Văn Long', 'Lý Thị Ngọc',
+  'sakura_fan88', 'kim_jisoo_lover', 'bangkok_boy99', 'manila_queen',
+  'kuala_star', 'phnom_penh_vip', 'yangon_hero', 'sg_lion_88',
+  'xXDragonSlayerXx', 'TikTok_Addict', 'LiveStream_Fan',
+  'GiftKing_2024', 'DiamondHunter', 'ProGamer_VN', 'NightOwl_TH',
+  'KPopStan_KR', 'AnimeWeeb_JP', 'CoffeeAddict_ID', 'BubbleTea_SG',
+  'RiceBowl_PH', 'GoldenDragon88', 'SuperStar_MY', 'ThunderBolt99',
+  'CoolGuy_KH', 'NeonLight_MM', 'PixelArt_BR', 'EagleFly_US',
+  'ChezMoi_FR', 'BerlinBeat_DE', 'LondonVibes_GB', 'SpicyMasala_IN',
+  'PandaLover_CN', 'SushiMaster_JP', 'KimchiKing_KR',
+];
+
+router.post('/game/manual-gift', (req: Request, res: Response) => {
+  const { teamId } = req.body;
+  if (!teamId) {
+    res.status(400).json({ success: false, error: 'teamId is required' });
+    return;
+  }
+
+  const state = gameManager.getState();
+  const team = state.teams.find(t => t.id === teamId);
+  if (!team) {
+    res.status(400).json({ success: false, error: 'Team not found' });
+    return;
+  }
+
+  if (state.status !== 'racing') {
+    res.status(400).json({ success: false, error: 'Game is not racing' });
+    return;
+  }
+
+  // Generate fake user
+  const fakeName = MANUAL_FAKE_NAMES[Math.floor(Math.random() * MANUAL_FAKE_NAMES.length)];
+  const fakeId = `manual_${fakeName.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}`;
+  const repeatCount = Math.random() > 0.7 ? Math.floor(Math.random() * 3) + 2 : 1;
+
+  gameManager.processGift({
+    giftId: team.giftId,
+    giftName: team.giftName,
+    giftPictureUrl: team.giftImageUrl,
+    repeatCount,
+    userId: fakeId,
+    userName: fakeName,
+    userAvatar: '/default-avatar.webp',
+  });
+
+  res.json({ success: true, userName: fakeName, steps: repeatCount });
+});
+
 // ═══════════════════════════════════════════
 // Mock Mode
 // ═══════════════════════════════════════════
