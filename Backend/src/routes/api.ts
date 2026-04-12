@@ -102,18 +102,64 @@ router.post('/game/clear-interactive-data', (_req: Request, res: Response) => {
 
 // ─── Manual Gift (Hotkey Donation) ───
 const MANUAL_FAKE_NAMES = [
+  // Vietnamese names
   'Nguyễn Văn An', 'Trần Thị Mai', 'Lê Hoàng Nam', 'Phạm Minh Anh',
   'Hoàng Thị Lan', 'Vũ Đức Huy', 'Đặng Quốc Bảo', 'Bùi Thu Hà',
   'Đỗ Thanh Tùng', 'Ngô Thị Hương', 'Dương Văn Long', 'Lý Thị Ngọc',
-  'sakura_fan88', 'kim_jisoo_lover', 'bangkok_boy99', 'manila_queen',
-  'kuala_star', 'phnom_penh_vip', 'yangon_hero', 'sg_lion_88',
+  'Nguyễn Thị Hạnh', 'Trần Đức Minh', 'Lê Thùy Dung', 'Phạm Tuấn Kiệt',
+  'Hoàng Quốc Việt', 'Vũ Ngọc Ánh', 'Đặng Thị Thảo', 'Bùi Hữu Phước',
+  'Đỗ Văn Dũng', 'Ngô Minh Tâm', 'Dương Thị Yến', 'Lý Quang Hải',
+  'Trương Công Thành', 'Hồ Thị Bích', 'Phan Văn Tài', 'Võ Thị Linh',
+  'Châu Gia Bảo', 'Mai Thanh Sơn', 'Tô Ngọc Phúc', 'Đinh Thị Trang',
+  'Nguyễn Hữu Lộc', 'Trần Quang Vinh', 'Lê Thị Mỹ Linh', 'Phạm Đức Trí',
+  'Hoàng Anh Tuấn', 'Vũ Thị Kim Chi', 'Bùi Minh Quân', 'Đỗ Thị Nga',
+  // Thai-style usernames
+  'bangkok_boy99', 'som_tam_lover', 'thai_smile_22', 'bkk_night_owl',
+  'tuk_tuk_rider', 'pad_thai_king', 'chiang_mai_vibe', 'phuket_sun77',
+  'nong_mai_55', 'krung_thep_fan', 'isaan_boy_88', 'thai_boxing_vip',
+  // Japanese-style usernames
+  'sakura_fan88', 'tokyo_drift_99', 'ramen_sensei', 'otaku_world_jp',
+  'ninja_shadow_x', 'kawaii_neko_33', 'samurai_blade88', 'fuji_dream_11',
+  'matcha_vibes', 'anime_hero_jp', 'sushi_gang_44', 'harajuku_style',
+  // Korean-style usernames
+  'kim_jisoo_lover', 'seoul_dreamer', 'kpop_fan_army', 'bibimbap_king',
+  'hallyu_wave_kr', 'oppa_gang_99', 'hangul_master', 'kimchi_warrior',
+  'gangnam_style88', 'busan_boy_77', 'kdrama_addict', 'soju_night_kr',
+  // Filipino-style usernames
+  'manila_queen', 'pinoy_pride_ph', 'jollibee_fan99', 'cebu_sunset_22',
+  'adobo_master', 'bahay_kubo_ph', 'tita_moments', 'mahal_kita_88',
+  'jeepney_king', 'boracay_vibes', 'halo_halo_fan', 'lechon_lover_ph',
+  // Malaysian-style usernames
+  'kuala_star', 'nasi_lemak_my', 'mamak_session', 'kl_tower_fan',
+  'durian_king_my', 'teh_tarik_99', 'petronas_vip', 'borneo_wild_88',
+  'roti_canai_my', 'langkawi_sun', 'satay_master', 'merdeka_my_55',
+  // Indonesian-style usernames
+  'CoffeeAddict_ID', 'bali_vibes_id', 'nasi_goreng_88', 'jakarta_hustle',
+  'batik_lover_id', 'rendang_king', 'indo_pride_22', 'wayang_fan_id',
+  'komodo_hero', 'bandung_cool', 'gado_gado_id', 'raja_ampat_99',
+  // Cambodian-style
+  'phnom_penh_vip', 'angkor_wat_fan', 'khmer_pride_kh', 'CoolGuy_KH',
+  'cambodia_sun', 'mekong_fish_kh',
+  // Myanmar-style
+  'yangon_hero', 'NeonLight_MM', 'golden_pagoda', 'mandalay_mm_88',
+  'myanmar_star_22', 'bagan_dreamer',
+  // Singapore-style
+  'sg_lion_88', 'BubbleTea_SG', 'merlion_fan_sg', 'hawker_king_sg',
+  'orchard_rd_vip', 'singlish_pro',
+  // Generic TikTok-style usernames
   'xXDragonSlayerXx', 'TikTok_Addict', 'LiveStream_Fan',
   'GiftKing_2024', 'DiamondHunter', 'ProGamer_VN', 'NightOwl_TH',
-  'KPopStan_KR', 'AnimeWeeb_JP', 'CoffeeAddict_ID', 'BubbleTea_SG',
-  'RiceBowl_PH', 'GoldenDragon88', 'SuperStar_MY', 'ThunderBolt99',
-  'CoolGuy_KH', 'NeonLight_MM', 'PixelArt_BR', 'EagleFly_US',
+  'KPopStan_KR', 'AnimeWeeb_JP', 'RiceBowl_PH', 'GoldenDragon88',
+  'SuperStar_MY', 'ThunderBolt99', 'PixelArt_BR', 'EagleFly_US',
   'ChezMoi_FR', 'BerlinBeat_DE', 'LondonVibes_GB', 'SpicyMasala_IN',
   'PandaLover_CN', 'SushiMaster_JP', 'KimchiKing_KR',
+  'shadow_wolf_x', 'vibes_only_99', 'star_catcher_0', 'moonlight_22',
+  'fire_phoenix_x', 'ice_queen_007', 'sunny_day_fan', 'dark_knight_01',
+  'cosmic_rider', 'lucky_charm_88', 'swift_runner_v', 'ocean_wave_55',
+  'blazing_star', 'crystal_clear', 'neon_spark_33', 'zen_master_00',
+  'turbo_boost_x', 'pixel_ninja_7', 'royal_flush_99', 'echo_storm_44',
+  'nova_light_vip', 'galaxy_surfer', 'dream_chaser_x', 'alpha_strike',
+  'cyber_punk_88', 'retro_wave_77', 'glitch_mode_on', 'venom_bite_01',
 ];
 
 router.post('/game/manual-gift', (req: Request, res: Response) => {
