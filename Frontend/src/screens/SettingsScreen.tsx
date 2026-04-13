@@ -6,7 +6,7 @@ import { GlitchText } from '../components/GlitchText.js';
 import { useSocketStore } from '../stores/useSocketStore.js';
 import { useGameStore } from '../stores/useGameStore.js';
 import { COUNTRIES, DEFAULT_SELECTED_IDS } from '../lib/countries.js';
-import { TIKTOK_GIFTS } from '../lib/gifts.js';
+
 import * as api from '../lib/api.js';
 import type { TeamConfig } from '../types/index.js';
 
@@ -170,7 +170,7 @@ export function SettingsScreen() {
     }
     return DEFAULT_SELECTED_IDS;
   });
-  const [availableGifts, setAvailableGifts] = useState<any[]>(TIKTOK_GIFTS);
+  const [availableGifts, setAvailableGifts] = useState<any[]>([]);
   const [giftMapping, setGiftMapping] = useState<Record<string, number>>({});
   const [trackLength, setTrackLength] = useState(() => {
     const saved = localStorage.getItem('tiktok_game_track_length');
@@ -178,23 +178,14 @@ export function SettingsScreen() {
   });
   const [isStarting, setIsStarting] = useState(false);
   
-  // ─── Initialize default gift mapping ───
+  // ─── Initialize gift mapping from localStorage ───
   useEffect(() => {
     const savedMapping = localStorage.getItem('tiktok_game_gift_mapping');
     if (savedMapping) {
       try {
         setGiftMapping(JSON.parse(savedMapping));
-        return;
       } catch (e) {}
     }
-
-    const mapping: Record<string, number> = {};
-    DEFAULT_SELECTED_IDS.forEach((id, i) => {
-      if (TIKTOK_GIFTS[i]) {
-        mapping[id] = TIKTOK_GIFTS[i].giftId;
-      }
-    });
-    setGiftMapping(mapping);
   }, []);
 
   // Save changes to localStorage
@@ -232,12 +223,29 @@ export function SettingsScreen() {
           });
           setAvailableGifts(formattedGifts);
 
-          // Update current mapping if it uses invalid IDs
+          // Auto-assign gifts to selected countries that don't have a valid mapping
           setGiftMapping(prevMap => {
             const newMap = { ...prevMap };
-            Object.keys(newMap).forEach((countryId, i) => {
-              if (!formattedGifts.find(g => g.giftId === newMap[countryId])) {
-                newMap[countryId] = formattedGifts[i % formattedGifts.length].giftId;
+            const giftIds = new Set(formattedGifts.map(g => g.giftId));
+            let nextGiftIdx = 0;
+            selectedCountries.forEach(countryId => {
+              if (!newMap[countryId] || !giftIds.has(newMap[countryId])) {
+                // Find a gift not yet used
+                const usedGifts = new Set(Object.values(newMap).filter(id => giftIds.has(id)));
+                let assigned = false;
+                for (let j = 0; j < formattedGifts.length; j++) {
+                  const idx = (nextGiftIdx + j) % formattedGifts.length;
+                  if (!usedGifts.has(formattedGifts[idx].giftId)) {
+                    newMap[countryId] = formattedGifts[idx].giftId;
+                    nextGiftIdx = idx + 1;
+                    assigned = true;
+                    break;
+                  }
+                }
+                if (!assigned && formattedGifts.length > 0) {
+                  newMap[countryId] = formattedGifts[nextGiftIdx % formattedGifts.length].giftId;
+                  nextGiftIdx++;
+                }
               }
             });
             return newMap;
@@ -245,7 +253,8 @@ export function SettingsScreen() {
         }
       }).catch(err => console.error("Could not fetch gifts:", err));
     } else {
-      setAvailableGifts(TIKTOK_GIFTS);
+      setAvailableGifts([]);
+      setGiftMapping({});
     }
   }, [tiktokConnected]);
 
@@ -327,7 +336,8 @@ export function SettingsScreen() {
           color: country.color,
           giftId,
           giftName: gift?.name || 'Gift',
-          giftImageUrl: gift?.imageUrl,
+          giftImageUrl: gift?.imageUrl || '',
+          giftEmoji: gift?.emoji || '🎁',
         };
       });
 
@@ -534,42 +544,58 @@ export function SettingsScreen() {
               >
                 Gift → Nation Mapping:
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {selectedCountries.map(id => {
-                  const country = COUNTRIES.find(c => c.id === id);
-                  if (!country) return null;
-                  return (
-                    <div
-                      key={id}
-                      className="flex items-center gap-2 p-2 rounded-sm"
-                      style={{
-                        background: 'var(--bg)',
-                        border: '1px solid var(--border)',
-                      }}
-                    >
-                      <img src={country.flagImage} alt={country.name} className="w-6 h-4 object-cover rounded-sm" />
-                      <span
-                        className="text-xs font-bold uppercase flex-1"
-                        style={{ fontFamily: 'var(--font-heading)', color: country.color }}
+              {availableGifts.length === 0 ? (
+                <div
+                  className="p-4 text-center cyber-chamfer-sm"
+                  style={{
+                    background: 'rgba(255, 170, 0, 0.05)',
+                    border: '1px dashed var(--warning)',
+                    color: 'var(--warning)',
+                    fontFamily: 'var(--font-label)',
+                    fontSize: '0.75rem',
+                  }}
+                >
+                  ⚠ Connect to a TikTok Live stream first to load available gifts
+                  <span className="blink-cursor" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {selectedCountries.map(id => {
+                    const country = COUNTRIES.find(c => c.id === id);
+                    if (!country) return null;
+                    return (
+                      <div
+                        key={id}
+                        className="flex items-center gap-2 p-2 rounded-sm"
+                        style={{
+                          background: 'var(--bg)',
+                          border: '1px solid var(--border)',
+                        }}
                       >
-                        {country.name}
-                      </span>
-                      <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>←</span>
-                      <CustomSelect
-                        value={giftMapping[id] || ''}
-                        onChange={(val: number) => handleGiftChange(id, val)}
-                        options={availableGifts.map(gift => ({
-                          value: gift.giftId,
-                          label: `${gift.name} ${gift.price !== undefined ? `(${gift.price} Dia)` : ''}`,
-                          emoji: gift.emoji,
-                          imageUrl: gift.imageUrl,
-                          price: gift.price || 0
-                        }))}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
+                        <img src={country.flagImage} alt={country.name} className="w-6 h-4 object-cover rounded-sm" />
+                        <span
+                          className="text-xs font-bold uppercase flex-1"
+                          style={{ fontFamily: 'var(--font-heading)', color: country.color }}
+                        >
+                          {country.name}
+                        </span>
+                        <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>←</span>
+                        <CustomSelect
+                          value={giftMapping[id] || ''}
+                          onChange={(val: number) => handleGiftChange(id, val)}
+                          options={availableGifts.map(gift => ({
+                            value: gift.giftId,
+                            label: `${gift.name} (${gift.price ?? gift.diamondCount ?? 0} Dia)`,
+                            emoji: gift.emoji,
+                            imageUrl: gift.imageUrl,
+                            price: gift.price ?? gift.diamondCount ?? 0
+                          }))}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
@@ -578,19 +604,21 @@ export function SettingsScreen() {
             <button
               className="cyber-btn-glitch cyber-chamfer flex-1 text-lg"
               onClick={handleStartRace}
-              disabled={isStarting || selectedCountries.length < 2}
+              disabled={isStarting || selectedCountries.length < 2 || availableGifts.length === 0}
               style={{
-                opacity: isStarting || selectedCountries.length < 2 ? 0.5 : 1,
+                opacity: isStarting || selectedCountries.length < 2 || availableGifts.length === 0 ? 0.5 : 1,
                 fontFamily: 'var(--font-heading)',
               }}
+              title={availableGifts.length === 0 ? 'Connect to TikTok first to load gifts' : ''}
             >
               {isStarting ? '⏳ Starting...' : '⚡ START RACE ⚡'}
             </button>
             <button
               className="cyber-btn cyber-btn-secondary cyber-chamfer-sm"
               onClick={handleStartMock}
-              disabled={isStarting}
-              style={{ opacity: isStarting ? 0.5 : 1 }}
+              disabled={isStarting || availableGifts.length === 0}
+              style={{ opacity: isStarting || availableGifts.length === 0 ? 0.5 : 1 }}
+              title={availableGifts.length === 0 ? 'Connect to TikTok first to load gifts' : ''}
             >
               🤖 Mock Mode
             </button>

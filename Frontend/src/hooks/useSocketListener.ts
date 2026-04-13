@@ -45,6 +45,7 @@ export function useSocketListener() {
         teamFlag: event.teamFlag,
         timestamp: Date.now(),
         giftImageUrl: event.giftData.giftImageUrl,
+        giftEmoji: event.giftData.giftEmoji,
       };
       addToast(toast);
     };

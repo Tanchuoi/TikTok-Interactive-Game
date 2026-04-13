@@ -88,9 +88,11 @@ export function GiftPopup() {
               >
                 {toast.message}
               </span>
-              {toast.giftImageUrl && (
+              {toast.giftImageUrl ? (
                 <img src={toast.giftImageUrl} alt="gift" className="w-5 h-5 object-contain" />
-              )}
+              ) : toast.giftEmoji ? (
+                <span className="text-sm">{toast.giftEmoji}</span>
+              ) : null}
             </div>
             {toast.teamFlag && (
               <span className="text-sm shrink-0">{toast.teamFlag}</span>

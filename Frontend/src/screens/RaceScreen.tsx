@@ -137,12 +137,6 @@ export function RaceScreen() {
           >
             {status === 'racing' ? '● LIVE' : status === 'finished' ? '● FINISHED' : '● WAITING'}
           </div>
-          <span
-            className="text-xs"
-            style={{ fontFamily: 'var(--font-label)', color: 'var(--muted-fg)' }}
-          >
-            Track: {trackLength} steps
-          </span>
           <div className="h-4 w-[1px] bg-[var(--border)] mx-1" />
           <span
             className="text-xs flex items-center gap-1.5"
@@ -200,7 +194,7 @@ export function RaceScreen() {
                   {team.giftImageUrl ? (
                     <img src={team.giftImageUrl} alt={team.giftName} className="w-8 h-8 object-contain shrink-0" title={team.giftName} />
                   ) : (
-                    <span className="text-base shrink-0" title={team.giftName}>🎁</span>
+                    <span className="text-base shrink-0" title={team.giftName}>{team.giftEmoji || '🎁'}</span>
                   )}
                   <div className="flex-1 h-3.5 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
                     <div

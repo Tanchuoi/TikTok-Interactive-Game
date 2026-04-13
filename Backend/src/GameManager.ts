@@ -11,6 +11,7 @@ export interface TeamConfig {
   giftId: number;
   giftName: string;
   giftImageUrl?: string;
+  giftEmoji?: string;
 }
 
 export interface Donor {
@@ -151,7 +152,8 @@ class GameManager extends EventEmitter {
         userName: giftData.userName,
         userAvatar: giftData.userAvatar,
         steps,
-        giftImageUrl: giftData.giftPictureUrl,
+        giftImageUrl: giftData.giftPictureUrl || team.giftImageUrl || '',
+        giftEmoji: team.giftEmoji || '',
       },
     });
 
@@ -241,6 +243,7 @@ class GameManager extends EventEmitter {
     this.emit('stateChange', this.getState());
   }
 }
+
 
 // Export singleton
 export const gameManager = new GameManager();
