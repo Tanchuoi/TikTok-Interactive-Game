@@ -62,25 +62,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Update position
       const updated = { ...t, position: event.newPosition };
 
-      // Track donors locally
-      const donors = [...t.donors];
-      const existing = donors.find(d => d.userName === event.giftData.userName);
-      if (existing) {
-        existing.giftCount += event.giftData.steps;
-        if (event.giftData.userAvatar) {
-           existing.userAvatar = event.giftData.userAvatar;
+      if (event.giftData.giftName !== 'Comment') {
+        // Track donors locally
+        const donors = [...t.donors];
+        const existing = donors.find(d => d.userName === event.giftData.userName);
+        if (existing) {
+          existing.giftCount += event.giftData.steps;
+          if (event.giftData.userAvatar) {
+             existing.userAvatar = event.giftData.userAvatar;
+          }
+        } else {
+          donors.push({
+            userId: event.giftData.userName,
+            userName: event.giftData.userName,
+            userAvatar: event.giftData.userAvatar,
+            giftCount: event.giftData.steps,
+          });
         }
-      } else {
-        donors.push({
-          userId: event.giftData.userName,
-          userName: event.giftData.userName,
-          userAvatar: event.giftData.userAvatar,
-          giftCount: event.giftData.steps,
-        });
+        // Sort by gift count descending
+        donors.sort((a, b) => b.giftCount - a.giftCount);
+        updated.donors = donors;
       }
-      // Sort by gift count descending
-      donors.sort((a, b) => b.giftCount - a.giftCount);
-      updated.donors = donors;
 
       return updated;
     });

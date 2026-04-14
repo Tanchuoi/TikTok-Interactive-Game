@@ -364,7 +364,7 @@ export function RaceScreen() {
 
           {/* Live Feed */}
           <div className="flex-1 min-h-0">
-            <LiveFeed events={recentGifts} />
+            <LiveFeed events={recentGifts.filter(e => e.giftData.giftName !== 'Comment')} />
           </div>
         </div>
       </div>

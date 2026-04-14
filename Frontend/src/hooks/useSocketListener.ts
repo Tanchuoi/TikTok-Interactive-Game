@@ -35,19 +35,22 @@ export function useSocketListener() {
     const handleMove = (event: MoveEvent) => {
       moveTeam(event);
 
-      // Add gift toast
-      const toast: ToastEvent = {
-        id: makeToastId(),
-        type: 'gift',
-        userName: event.giftData.userName,
-        userAvatar: event.giftData.userAvatar,
-        message: `gifted ${event.giftData.giftName} ${event.giftData.steps > 1 ? `x${event.giftData.steps}` : ''} → ${event.teamFlag} ${event.teamName}`,
-        teamFlag: event.teamFlag,
-        timestamp: Date.now(),
-        giftImageUrl: event.giftData.giftImageUrl,
-        giftEmoji: event.giftData.giftEmoji,
-      };
-      addToast(toast);
+      // Only add a gift toast if it's an actual gift (chat has its own UI popup)
+      const isComment = event.giftData.giftName === 'Comment';
+      if (!isComment) {
+        const toast: ToastEvent = {
+          id: makeToastId(),
+          type: 'gift',
+          userName: event.giftData.userName,
+          userAvatar: event.giftData.userAvatar,
+          message: `gifted ${event.giftData.giftName} ${event.giftData.steps > 1 ? `x${event.giftData.steps}` : ''} → ${event.teamFlag} ${event.teamName}`,
+          teamFlag: event.teamFlag,
+          timestamp: Date.now(),
+          giftImageUrl: event.giftData.giftImageUrl,
+          giftEmoji: event.giftData.giftEmoji,
+        };
+        addToast(toast);
+      }
     };
 
     // ─── Winner ───

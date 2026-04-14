@@ -157,7 +157,6 @@ class GameManager extends EventEmitter {
       },
     });
 
-    // Check for winner
     if (team.position >= this.trackLength) {
       this.winner = { ...team };
       this.status = 'finished';
@@ -173,6 +172,61 @@ class GameManager extends EventEmitter {
       });
 
       // Build final standings
+      const standings = Array.from(this.teams.values())
+        .sort((a, b) => b.position - a.position)
+        .map(t => ({ ...t }));
+
+      this.emit('winner', {
+        winner: { ...team },
+        standings,
+        trackLength: this.trackLength,
+      });
+    }
+  }
+
+  processChat(chatData: { userId: string; userName: string; userAvatar: string; comment: string }): void {
+    if (this.status !== 'racing') return;
+
+    const commentNormal = chatData.comment.trim().toLowerCase();
+    const team = Array.from(this.teams.values()).find(t => t.id.toLowerCase() === commentNormal);
+    
+    if (!team) return;
+
+    // Moving slightly for comments (0.1 steps)
+    const steps = 0.1;
+    team.position = Math.min(team.position + steps, this.trackLength);
+
+    this.emit('move', {
+      teamId: team.id,
+      teamName: team.name,
+      teamFlag: team.flag,
+      teamColor: team.color,
+      newPosition: team.position,
+      trackLength: this.trackLength,
+      percentage: Math.round((team.position / this.trackLength) * 100),
+      giftData: {
+        giftName: 'Comment',
+        userName: chatData.userName,
+        userAvatar: chatData.userAvatar,
+        steps,
+        giftImageUrl: '',
+        giftEmoji: '🗣️',
+      },
+    });
+
+    if (team.position >= this.trackLength) {
+      this.winner = { ...team };
+      this.status = 'finished';
+
+      this.winHistory.push({
+        teamId: team.id,
+        teamName: team.name,
+        flag: team.flag,
+        flagImage: team.flagImage,
+        color: team.color,
+        timestamp: Date.now(),
+      });
+
       const standings = Array.from(this.teams.values())
         .sort((a, b) => b.position - a.position)
         .map(t => ({ ...t }));

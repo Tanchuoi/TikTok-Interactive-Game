@@ -87,6 +87,7 @@ tiktokService.on('viewers', (data) => {
 
 tiktokService.on('chat', (data) => {
   io.emit('tiktok:chat', data);
+  gameManager.processChat(data);
 });
 
 tiktokService.on('disconnected', () => {
@@ -103,4 +104,4 @@ httpServer.listen(PORT, () => {
   console.log('╚══════════════════════════════════════════╝');
   console.log('');
 });
-;
+

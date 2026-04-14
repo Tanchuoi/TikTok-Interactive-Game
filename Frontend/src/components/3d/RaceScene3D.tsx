@@ -7,6 +7,7 @@ import { FinishLine3D } from './FinishLine3D';
 import { StartLine3D } from './StartLine3D';
 import { FruitProjectile3D } from './FruitProjectile3D';
 import { NeonShatterParticles } from './NeonShatterParticles';
+import { LaneAbbreviation } from './LaneAbbreviation';
 import { useGameStore } from '../../stores/useGameStore';
 import type { Team, MoveEvent } from '../../types/index';
 
@@ -255,14 +256,20 @@ export function RaceScene3D({ teams, trackLength, winnerId }: RaceScene3DProps) 
               const zPos = startZ - progress * (trackWorldLength - 1);
 
               return (
-                <FlagRunner3D
-                  key={team.id}
-                  team={team}
-                  position={[laneX, 0.5, zPos]}
-                  isLeading={visualPos > 0 && visualPos >= maxPos}
-                  isWinner={winnerId === team.id}
-                  progress={progress}
-                />
+                <group key={team.id}>
+                  <LaneAbbreviation
+                    id={team.id}
+                    position={[laneX, 0.025, 0]}
+                    color={team.color}
+                  />
+                  <FlagRunner3D
+                    team={team}
+                    position={[laneX, 0.5, zPos]}
+                    isLeading={visualPos > 0 && visualPos >= maxPos}
+                    isWinner={winnerId === team.id}
+                    progress={progress}
+                  />
+                </group>
               );
             })}
           </group>
