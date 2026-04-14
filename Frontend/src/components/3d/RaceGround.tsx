@@ -41,16 +41,39 @@ export function RaceGround({ laneCount, laneWidth, trackLength }: RaceGroundProp
     return texture;
   }, []);
 
+  // Dashed lines texture
+  const dashTexture = useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d')!;
+    
+    // Transparent background
+    ctx.fillStyle = 'rgba(255,255,255,0)';
+    ctx.fillRect(0, 0, 64, 128);
+    // Draw the dash taking roughly half the height
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 32, 64, 64);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(1, 16);
+    return texture;
+  }, []);
+
   // Lane divider lines
   const laneLines = useMemo(() => {
-    const lines: React.ReactNode[] = [];
+    const solidLines: React.ReactNode[] = [];
+    const dashedLines: React.ReactNode[] = [];
+    
     for (let i = 0; i <= laneCount; i++) {
       const x = (i - laneCount / 2) * laneWidth;
       const isEdge = i === 0 || i === laneCount;
 
       // Solid edge lines, dashed inner lines
       if (isEdge) {
-        lines.push(
+        solidLines.push(
           <mesh
             key={`lane-${i}`}
             position={[x, 0.015, 0]}
@@ -61,35 +84,40 @@ export function RaceGround({ laneCount, laneWidth, trackLength }: RaceGroundProp
           </mesh>
         );
       } else {
-        // Dashed center lines
-        const dashCount = 16;
-        const dashLength = trackLength / (dashCount * 2);
-        for (let d = 0; d < dashCount; d++) {
-          const zPos = -(trackLength / 2) + d * (dashLength * 2) + dashLength / 2;
-          lines.push(
-            <mesh
-              key={`lane-${i}-dash-${d}`}
-              position={[x, 0.015, zPos]}
-              rotation={[-Math.PI / 2, 0, 0]}
-            >
-              <planeGeometry args={[0.03, dashLength * 0.8]} />
-              <meshBasicMaterial color="#ffffff" transparent opacity={0.2} />
-            </mesh>
-          );
-        }
+        // Shared dashed line texture
+        dashedLines.push(
+          <mesh
+            key={`lane-${i}-dash`}
+            position={[x, 0.015, 0]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <planeGeometry args={[0.03, trackLength]} />
+            <meshBasicMaterial map={dashTexture} transparent opacity={0.2} color="#ffffff" />
+          </mesh>
+        );
       }
     }
-    return lines;
-  }, [laneCount, laneWidth, trackLength]);
+    return { solidLines, dashedLines };
+  }, [laneCount, laneWidth, trackLength, dashTexture]);
 
-  // Grid glow effect on ground edges
+  // Grid glow effect on ground edges and scrolling backwards
   const glowPulse = useRef(0);
+  const SCROLL_SPEED = 3.5;
+
   useFrame((_state, delta) => {
     glowPulse.current += delta;
     if (gridRef.current) {
       const mat = gridRef.current.material as THREE.MeshStandardMaterial;
       mat.emissiveIntensity = 0.02 + Math.sin(glowPulse.current * 2) * 0.01;
+      
+      if (mat.map) {
+        // Scroll the texture backwards (negative Y in uv = positive Z in world)
+        mat.map.offset.y -= delta * (SCROLL_SPEED * 0.2); 
+      }
     }
+
+    // Scroll dashed lines texture backwards
+    dashTexture.offset.y -= delta * (SCROLL_SPEED / (trackLength / 16));
   });
 
   // Start line
@@ -124,7 +152,8 @@ export function RaceGround({ laneCount, laneWidth, trackLength }: RaceGroundProp
       </mesh>
 
       {/* Lane lines */}
-      {laneLines}
+      {laneLines.solidLines}
+      {laneLines.dashedLines}
 
       {/* Start line */}
       {startLine}
